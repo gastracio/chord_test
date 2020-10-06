@@ -6,6 +6,11 @@ import json
 
 
 @pytest.fixture(scope="session")
+def pc_power():
+    logging.info("Включение ПК")
+
+
+@pytest.fixture(scope="session")
 def keyboard():
     # TODO Add linux gadget hid device
     file = open('keyboard.txt', 'w+')
@@ -17,7 +22,7 @@ def keyboard():
 @pytest.fixture(scope="session")
 def config():
     if os.path.isfile("config.json") is False:
-        logging.error("There is no config.json file")
+        logging.error("Файла config.json не существует")
         assert False
     with open('config.json') as config_file:
         yield json.load(config_file)

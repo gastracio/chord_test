@@ -12,3 +12,13 @@ def attach_identifier(identifier: str, sleep_time):
     logging.debug("Подключение идентификатора " + identifier)
     time.sleep(sleep_time)
     logging.debug("Отключение идентификатора " + identifier)
+
+
+def pc_power_switch():
+    pass
+
+
+def pc_reboot():
+    pass
+
+
