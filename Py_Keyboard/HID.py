@@ -593,7 +593,7 @@ class Keyboard:
     def send_report(self, report):
         """ write bytes to HID device """
         with open(self.hid_device, 'rb+') as fd:
-            logging.debug(report)
+            # logging.debug(report)
             fd.write(report)
 
 
