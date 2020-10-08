@@ -181,6 +181,6 @@ def test_chord_user(id_number, keyboard, config, clear_db, log_test_borders):
     logging.info("Аутентификация пользователя")
     authentication(config["identifiers"][id_number], user_password, keyboard)
     logging.info("Нажатие на кнопку \"Продолжить загрузку\"")
-    logging.info("Проверка корректности загрузки ОС")
+    logging.info("Проверка корректности загрузки ОС") 
 
 
