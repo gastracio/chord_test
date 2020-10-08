@@ -13,24 +13,26 @@ if os.path.isfile("config.json") is False:
 with open('config.json') as config_file:
     id_conf = json.load(config_file)["identifiers"]
 identifiers_param_list = []
-for key, value in id_conf.items():  # in range(len(id_conf)):
+for key, value in id_conf.items():
     identifiers_param_list.append(pytest.param(key, id=value))
 
 
 def create_account(identifier, password, keyboard):
     logging.info("Нажатие кнопки \"Сменить...\" в поле \"Идентификатор\"")
     logging.info("Выбор пункта \"Использовать существующий\"")
-    # TODO Использовать сгенерированный идентификатор
+    # TODO Использовать сгенерированный идентификатор (Вводит ограничение на тестируемые идентификаторы)
     logging.info("Нажатие кнопки \"Далее\"")
 
     logging.info("Считывание идентификатора")
     testing_hardware.attach_identifier(identifier)
+    # TODO Проверить корректность присваивания идентификатора (Для кейса использования идентификатора администратора)
 
     logging.info("Нажатие кнопки ОК")
     keyboard.press("ENTER")
 
     logging.info("Нажатие кнопки \"Сменить...\" в поле \"Пароль\"")
     logging.info("Ввод пароля")
+    logging.debug("Пароль: " + password)
     keyboard.write(password)
 
     logging.info("Повторение пароля пароля")
@@ -156,9 +158,35 @@ def test_chord_main_admin(identifier, keyboard, config, clear_db, log_test_borde
 
     logging.info("Нажатие на кнопку \"Продолжить загрузку\"")
     logging.info("Проверка корректности загрузки ОС")
-
     system_reboot()
+
     authentication(identifier, main_admin_password, keyboard)
+    logging.info("Нажатие на кнопку \"Администрирование\"")
+
+
+@pytest.mark.run(order=2)
+@pytest.mark.dependency(depends=["chord_main_admin"])
+def test_creating_user_with_admin_id(keyboard, config, clear_db, log_test_borders):
+    logging.info("Начало теста создания пользователя с идентификатором главного администратора")
+
+    main_admin_id = random.choice([path for path in config["identifiers"]])
+    main_admin_password = generating_password()
+    creating_main_admin(config["identifiers"][main_admin_id], main_admin_password, keyboard)
+    logging.info("Применение настроек")
+    system_reboot()
+
+    authentication(main_admin_id, main_admin_password, keyboard)
+    logging.info("Нажатие на кнопку \"Администрирование\"")
+
+    logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
+    username = "User"
+    user_password = generating_password()
+    logging.info("Попытка создать пользователя с идентификатором главного администратора")
+    creating_user(main_admin_id, username, user_password, keyboard)
+    # TODO Сделать проверку ошибки присваивания неправильного идентификатора
+    system_reboot()
+
+    authentication(main_admin_id, main_admin_password, keyboard)
     logging.info("Нажатие на кнопку \"Администрирование\"")
 
 
@@ -168,9 +196,9 @@ def test_chord_main_admin(identifier, keyboard, config, clear_db, log_test_borde
 def test_chord_user(identifier, keyboard, config, clear_db, log_test_borders):
     logging.info("Начало теста пользователя Аккорда с идентификатором " + config["identifiers"][identifier])
 
-    main_admin_id_number =  random.choice([path for path in config["identifiers"] if path != identifier])
+    main_admin_id = random.choice([path for path in config["identifiers"] if path != identifier])
     main_admin_password = generating_password()
-    creating_main_admin(config["identifiers"][main_admin_id_number], main_admin_password, keyboard)
+    creating_main_admin(config["identifiers"][main_admin_id], main_admin_password, keyboard)
     logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
     username = "User"
     user_password = generating_password()
@@ -186,5 +214,8 @@ def test_chord_user(identifier, keyboard, config, clear_db, log_test_borders):
     authentication(identifier, user_password, keyboard)
     logging.info("Нажатие на кнопку \"Продолжить загрузку\"")
     logging.info("Проверка корректности загрузки ОС")
+    system_reboot()
 
+    authentication(main_admin_id, main_admin_password, keyboard)
+    logging.info("Нажатие на кнопку \"Администрирование\"")
 
