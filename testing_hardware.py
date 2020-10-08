@@ -12,15 +12,15 @@ with open('config.json') as config_file:
     config = json.load(config_file)
 
 
-def attach_identifier(identifier: str):
+def attach_identifier(identifier):
     """
     USB interrupter management function
     :param identifier: USB interrupter path
     :return:
     """
-    logging.debug("Подключение идентификатора " + identifier)
+    logging.debug("Подключение идентификатора " + identifier["name"])
     time.sleep(config["identifiers_res_time_sec"])
-    logging.debug("Отключение идентификатора " + identifier)
+    logging.debug("Отключение идентификатора " + identifier["name"])
 
 
 def pc_power_switch():

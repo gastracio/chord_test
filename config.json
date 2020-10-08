@@ -1,8 +1,20 @@
 {
-  "identifiers": {
-    "ide_path_1": "id_name_1",
-    "ide_path_2": "id_name_2",
-    "ide_path_3": "id_name_3"
-  },
+  "identifiers": [
+    {
+      "name": "id_name_1",
+      "path": "id_path_1",
+      "rewritable_key": "True"
+    },
+    {
+      "name": "id_name_2",
+      "path": "id_path_2",
+      "rewritable_key": "False"
+    },
+    {
+      "name": "id_name_3",
+      "path": "id_path_3",
+      "rewritable_key": "True"
+    }
+  ],
   "identifiers_res_time_sec": 0.5
 }

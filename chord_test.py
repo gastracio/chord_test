@@ -11,40 +11,9 @@ if os.path.isfile("config.json") is False:
     logging.error("Файла config.json не существует")
     assert False
 with open('config.json') as config_file:
-    id_conf = json.load(config_file)["identifiers"]
-identifiers_param_list = []
-for key, value in id_conf.items():
-    identifiers_param_list.append(pytest.param(key, id=value))
-
-
-def create_account(identifier, password, keyboard):
-    logging.info("Нажатие кнопки \"Сменить...\" в поле \"Идентификатор\"")
-    logging.info("Выбор пункта \"Использовать существующий\"")
-    # TODO Использовать сгенерированный идентификатор (Вводит ограничение на тестируемые идентификаторы)
-    logging.info("Нажатие кнопки \"Далее\"")
-
-    logging.info("Считывание идентификатора")
-    testing_hardware.attach_identifier(identifier)
-    # TODO Проверить корректность присваивания идентификатора (Для кейса использования идентификатора администратора)
-
-    logging.info("Нажатие кнопки ОК")
-    keyboard.press("ENTER")
-
-    logging.info("Нажатие кнопки \"Сменить...\" в поле \"Пароль\"")
-    logging.info("Ввод пароля")
-    logging.debug("Пароль: " + password)
-    keyboard.write(password)
-
-    logging.info("Повторение пароля пароля")
-    keyboard.press("TAB")
-    keyboard.write(password)
-
-    logging.info("Нажатие кнопки ОК")
-    keyboard.press("TAB")
-    keyboard.press("TAB")
-    keyboard.press("ENTER")
-
-    # TODO Проверка успешности создания пользователя с помощью логов АМДЗ
+    identifiers_param_list = []
+    for id_info in json.load(config_file)["identifiers"]:
+        identifiers_param_list.append(pytest.param(id_info, id=id_info["name"]))
 
 
 def check_correctness_of_interrupt_catching():
@@ -75,8 +44,7 @@ def authentication(identifier, password, keyboard):
     :param identifier:
     :param password:
     :param keyboard:
-    :param expected_auth_res:  Expected authentication result. Need for tests.
-    :return:
+    :return: authentication result
     """
     logging.info("Считывание идентификатора")
     testing_hardware.attach_identifier(identifier)
@@ -87,6 +55,39 @@ def authentication(identifier, password, keyboard):
 
     logging.info("Проверка удачной аутентификации")
     return check_correctness_of_authentication()
+
+
+def create_account(identifier, password, keyboard):
+    logging.info("Нажатие кнопки \"Сменить...\" в поле \"Идентификатор\"")
+    if identifier["rewritable_key"]:
+        logging.info("Выбор пункта \"Сгенерировать новый\"")
+        # TODO Использовать сгенерированный идентификатор (Вводит ограничение на тестируемые идентификаторы)
+    else:
+        logging.info("Выбор пункта \"Использовать существующий\"")
+    logging.info("Нажатие кнопки \"Далее\"")
+
+    logging.info("Считывание идентификатора")
+    testing_hardware.attach_identifier(identifier)
+    # TODO Проверить корректность присваивания идентификатора (Для кейса использования идентификатора администратора)
+
+    logging.info("Нажатие кнопки ОК")
+    keyboard.press("ENTER")
+
+    logging.info("Нажатие кнопки \"Сменить...\" в поле \"Пароль\"")
+    logging.info("Ввод пароля")
+    logging.debug("Пароль: " + password)
+    keyboard.write(password)
+
+    logging.info("Повторение пароля пароля")
+    keyboard.press("TAB")
+    keyboard.write(password)
+
+    logging.info("Нажатие кнопки ОК")
+    keyboard.press("TAB")
+    keyboard.press("TAB")
+    keyboard.press("ENTER")
+
+    # TODO Проверка успешности создания пользователя с помощью логов АМДЗ
 
 
 def creating_main_admin(identifier, password, keyboard):
@@ -128,6 +129,11 @@ def test_config(config, log_test_borders):
         logging.error("В конфигурационном файле указано меньше двух идентификаторов")
         assert False
 
+    for identifier in config["identifiers"]:
+        if (identifier["rewritable_key"] != "True") and (identifier["rewritable_key"] != "False"):
+            logging.error("В конфигурационном файле неправильное значение у поля rewritable_key")
+            assert False
+
 
 @pytest.mark.run(order=0)
 @pytest.mark.dependency(name="bios_interrupt_catching", scope="session")
@@ -147,7 +153,7 @@ def test_bios_interrupt_catching(log_test_borders):
                         ])
 @pytest.mark.parametrize("identifier", identifiers_param_list)
 def test_chord_main_admin(identifier, keyboard, config, clear_db, log_test_borders):
-    logging.info("Начало теста главного администратора Аккорда с идентификатором " + config["identifiers"][identifier])
+    logging.info("Начало теста главного администратора Аккорда с идентификатором " + identifier["name"])
 
     main_admin_password = generating_password()
     creating_main_admin(identifier, main_admin_password, keyboard)
@@ -155,7 +161,7 @@ def test_chord_main_admin(identifier, keyboard, config, clear_db, log_test_borde
     system_reboot()
 
     logging.info("Аутентификация с неправильным идентификатором")
-    incorrect_identifier = random.choice([path for path in config["identifiers"] if path != identifier])
+    incorrect_identifier = random.choice([id1 for id1 in config["identifiers"] if id1 != identifier])
     authentication(incorrect_identifier, main_admin_password, keyboard)
     system_reboot()
 
@@ -179,9 +185,9 @@ def test_chord_main_admin(identifier, keyboard, config, clear_db, log_test_borde
 def test_creating_user_with_admin_id(keyboard, config, clear_db, log_test_borders):
     logging.info("Начало теста создания пользователя с идентификатором главного администратора")
 
-    main_admin_id = random.choice([path for path in config["identifiers"]])
+    main_admin_id = random.choice([identifier for identifier in config["identifiers"]])
     main_admin_password = generating_password()
-    creating_main_admin(config["identifiers"][main_admin_id], main_admin_password, keyboard)
+    creating_main_admin(main_admin_id, main_admin_password, keyboard)
     logging.info("Применение настроек")
     system_reboot()
 
@@ -204,11 +210,11 @@ def test_creating_user_with_admin_id(keyboard, config, clear_db, log_test_border
 @pytest.mark.dependency(depends=["chord_main_admin"])
 @pytest.mark.parametrize("identifier", identifiers_param_list)
 def test_chord_user(identifier, keyboard, config, clear_db, log_test_borders):
-    logging.info("Начало теста пользователя Аккорда с идентификатором " + config["identifiers"][identifier])
+    logging.info("Начало теста пользователя Аккорда с идентификатором " + identifier["name"])
 
-    main_admin_id = random.choice([path for path in config["identifiers"] if path != identifier])
+    main_admin_id = random.choice([id1 for id1 in config["identifiers"] if id1 != identifier])
     main_admin_password = generating_password()
-    creating_main_admin(config["identifiers"][main_admin_id], main_admin_password, keyboard)
+    creating_main_admin(main_admin_id, main_admin_password, keyboard)
     logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
     username = "User"
     user_password = generating_password()
@@ -217,6 +223,7 @@ def test_chord_user(identifier, keyboard, config, clear_db, log_test_borders):
     system_reboot()
 
     logging.info("Аутентификация с неправильным паролем")
+    # TODO Делать аутентификацию до тех пор, пока не закроется доступ до администрирования
     authentication(identifier, user_password + "F", keyboard)
     system_reboot()
 
@@ -228,4 +235,5 @@ def test_chord_user(identifier, keyboard, config, clear_db, log_test_borders):
 
     authentication(main_admin_id, main_admin_password, keyboard)
     logging.info("Нажатие на кнопку \"Администрирование\"")
+
 
