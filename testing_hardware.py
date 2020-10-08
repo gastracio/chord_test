@@ -1,16 +1,25 @@
 import logging
 import time
+import os
+import json
 
 
-def attach_identifier(identifier: str, sleep_time):
+# Making pytest parametrize list for all identifiers
+if os.path.isfile("config.json") is False:
+    logging.error("Файла config.json не существует")
+    assert False
+with open('config.json') as config_file:
+    config = json.load(config_file)
+
+
+def attach_identifier(identifier: str):
     """
     USB interrupter management function
     :param identifier: USB interrupter path
-    :param sleep_time: Identifier boot and response time.
     :return:
     """
     logging.debug("Подключение идентификатора " + identifier)
-    time.sleep(sleep_time)
+    time.sleep(config["identifiers_res_time_sec"])
     logging.debug("Отключение идентификатора " + identifier)
 
 
