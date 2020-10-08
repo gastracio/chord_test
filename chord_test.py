@@ -13,8 +13,8 @@ if os.path.isfile("config.json") is False:
 with open('config.json') as config_file:
     id_conf = json.load(config_file)["identifiers"]
 identifiers_param_list = []
-for i in range(len(id_conf)):
-    identifiers_param_list.append(pytest.param(i, id=id_conf[i]))
+for key, value in id_conf.items():  # in range(len(id_conf)):
+    identifiers_param_list.append(pytest.param(key, id=value))
 
 
 def create_account(identifier, password, keyboard):
@@ -133,54 +133,58 @@ def test_bios_interrupt_catching(log_test_borders):
                         depends=[
                             "bios_interrupt_catching"
                         ])
-@pytest.mark.parametrize("id_number", identifiers_param_list)
-def test_chord_main_admin(id_number, keyboard, config, clear_db, log_test_borders):
-    logging.info("Начало теста главного администратора Аккорда с идентификатором " + config["identifiers"][id_number])
+@pytest.mark.parametrize("identifier", identifiers_param_list)
+def test_chord_main_admin(identifier, keyboard, config, clear_db, log_test_borders):
+    logging.info("Начало теста главного администратора Аккорда с идентификатором " + config["identifiers"][identifier])
 
     main_admin_password = generating_password()
-    creating_main_admin(config["identifiers"][id_number], main_admin_password, keyboard)
+    creating_main_admin(identifier, main_admin_password, keyboard)
     logging.info("Применение настроек")
     system_reboot()
 
     logging.info("Аутентификация с неправильным идентификатором")
-    incorrect_id_number = random.choice([x for x in range(len(config["identifiers"])) if x != id_number])
-    authentication(config["identifiers"][incorrect_id_number], main_admin_password, keyboard)
+    incorrect_identifier = random.choice([path for path in config["identifiers"] if path != identifier])
+    authentication(incorrect_identifier, main_admin_password, keyboard)
     system_reboot()
 
     logging.info("Аутентификация с неправильным паролем")
-    authentication(config["identifiers"][id_number], main_admin_password + "F", keyboard)
+    authentication(identifier, main_admin_password + "F", keyboard)
     system_reboot()
 
     logging.info("Аутентификация главного администратора")
-    authentication(config["identifiers"][id_number], main_admin_password, keyboard)
+    authentication(identifier, main_admin_password, keyboard)
 
     logging.info("Нажатие на кнопку \"Продолжить загрузку\"")
     logging.info("Проверка корректности загрузки ОС")
 
     system_reboot()
-    authentication(config["identifiers"][id_number], main_admin_password, keyboard)
+    authentication(identifier, main_admin_password, keyboard)
     logging.info("Нажатие на кнопку \"Администрирование\"")
 
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(depends=["chord_main_admin"])
-@pytest.mark.parametrize("id_number", identifiers_param_list)
-def test_chord_user(id_number, keyboard, config, clear_db, log_test_borders):
-    logging.info("Начало теста пользователя Аккорда с идентификатором " + config["identifiers"][id_number])
+@pytest.mark.parametrize("identifier", identifiers_param_list)
+def test_chord_user(identifier, keyboard, config, clear_db, log_test_borders):
+    logging.info("Начало теста пользователя Аккорда с идентификатором " + config["identifiers"][identifier])
 
-    main_admin_id_number = random.choice([x for x in range(len(config["identifiers"])) if x != id_number])
+    main_admin_id_number =  random.choice([path for path in config["identifiers"] if path != identifier])
     main_admin_password = generating_password()
     creating_main_admin(config["identifiers"][main_admin_id_number], main_admin_password, keyboard)
     logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
     username = "User"
     user_password = generating_password()
-    creating_user(config["identifiers"][id_number], username, user_password, keyboard)
+    creating_user(identifier, username, user_password, keyboard)
     logging.info("Применение настроек")
     system_reboot()
 
+    logging.info("Аутентификация с неправильным паролем")
+    authentication(identifier, user_password + "F", keyboard)
+    system_reboot()
+
     logging.info("Аутентификация пользователя")
-    authentication(config["identifiers"][id_number], user_password, keyboard)
+    authentication(identifier, user_password, keyboard)
     logging.info("Нажатие на кнопку \"Продолжить загрузку\"")
-    logging.info("Проверка корректности загрузки ОС") 
+    logging.info("Проверка корректности загрузки ОС")
 
 

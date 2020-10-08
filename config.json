@@ -1,8 +1,8 @@
 {
-  "identifiers": [
-    "identifier1",
-    "identifier2",
-    "identifier3"
-  ],
+  "identifiers": {
+    "ide_path_1": "id_name_1",
+    "ide_path_2": "id_name_2",
+    "ide_path_3": "id_name_3"
+  },
   "identifiers_res_time_sec": 0.5
 }
