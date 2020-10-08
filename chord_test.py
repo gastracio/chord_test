@@ -11,9 +11,7 @@ if os.path.isfile("config.json") is False:
     logging.error("Файла config.json не существует")
     assert False
 with open('config.json') as config_file:
-    identifiers_param_list = []
-    for id_info in json.load(config_file)["identifiers"]:
-        identifiers_param_list.append(pytest.param(id_info, id=id_info["name"]))
+    identifiers_list = json.load(config_file)["identifiers"]
 
 
 def check_correctness_of_interrupt_catching():
@@ -151,7 +149,8 @@ def test_bios_interrupt_catching(log_test_borders):
                             "bios_interrupt_catching",
                             "config"
                         ])
-@pytest.mark.parametrize("identifier", identifiers_param_list)
+@pytest.mark.parametrize("identifier",
+                         [pytest.param(identifier, id=(identifier["name"])) for identifier in identifiers_list])
 def test_chord_main_admin(identifier, keyboard, config, clear_db, log_test_borders):
     logging.info("Начало теста главного администратора Аккорда с идентификатором " + identifier["name"])
 
@@ -208,27 +207,41 @@ def test_creating_user_with_admin_id(keyboard, config, clear_db, log_test_border
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(depends=["chord_main_admin"])
-@pytest.mark.parametrize("identifier", identifiers_param_list)
-def test_chord_user(identifier, keyboard, config, clear_db, log_test_borders):
-    logging.info("Начало теста пользователя Аккорда с идентификатором " + identifier["name"])
+@pytest.mark.parametrize(("identifier", "is_admin"),
+                         [pytest.param(identifier, False, id=("User: " + identifier["name"]))
+                         for identifier in identifiers_list] +
+                         [pytest.param(identifier, True, id=("Admin: " + identifier["name"]))
+                         for identifier in identifiers_list])
+def test_chord_user(identifier, is_admin, keyboard, config, clear_db, log_test_borders):
+    if is_admin:
+        logging.info("Начало теста администратора Аккорда с идентификатором " + identifier["name"])
+    else:
+        logging.info("Начало теста пользователя Аккорда с идентификатором " + identifier["name"])
 
     main_admin_id = random.choice([id1 for id1 in config["identifiers"] if id1 != identifier])
     main_admin_password = generating_password()
     creating_main_admin(main_admin_id, main_admin_password, keyboard)
-    logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
-    username = "User"
-    user_password = generating_password()
-    creating_user(identifier, username, user_password, keyboard)
+    if is_admin:
+        logging.info("Выбор группы \"Администраторы\" в дереве учетных записей")
+        account_name = "Admin"
+    else:
+        logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
+        account_name = "User"
+    account_password = generating_password()
+    creating_user(identifier, account_name, account_password, keyboard)
     logging.info("Применение настроек")
     system_reboot()
 
     logging.info("Аутентификация с неправильным паролем")
     # TODO Делать аутентификацию до тех пор, пока не закроется доступ до администрирования
-    authentication(identifier, user_password + "F", keyboard)
+    authentication(identifier, account_password + "F", keyboard)
     system_reboot()
 
-    logging.info("Аутентификация пользователя")
-    authentication(identifier, user_password, keyboard)
+    if is_admin:
+        logging.info("Аутентификация администратора")
+    else:
+        logging.info("Аутентификация пользователя")
+    authentication(identifier, account_password, keyboard)
     logging.info("Нажатие на кнопку \"Продолжить загрузку\"")
     logging.info("Проверка корректности загрузки ОС")
     system_reboot()
