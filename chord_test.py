@@ -119,6 +119,15 @@ def clear_db(keyboard):
 
 
 @pytest.mark.run(order=0)
+@pytest.mark.dependency(name="config", scope="session")
+def test_config(config, log_test_borders):
+    logging.info("Начало теста конфигурационного файла")
+    if len(config["identifiers"]) < 2:
+        logging.error("В конфигурационном файле указано меньше двух идентификаторов")
+        assert False
+
+
+@pytest.mark.run(order=0)
 @pytest.mark.dependency(name="bios_interrupt_catching", scope="session")
 def test_bios_interrupt_catching(log_test_borders):
     logging.info("Начало теста перехвата прерывания BIOS")
@@ -131,7 +140,8 @@ def test_bios_interrupt_catching(log_test_borders):
 @pytest.mark.dependency(name="chord_main_admin",
                         scope="session",
                         depends=[
-                            "bios_interrupt_catching"
+                            "bios_interrupt_catching",
+                            "config"
                         ])
 @pytest.mark.parametrize("identifier", identifiers_param_list)
 def test_chord_main_admin(identifier, keyboard, config, clear_db, log_test_borders):
