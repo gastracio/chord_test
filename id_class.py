@@ -19,6 +19,7 @@ class Identifier:
 
     def attach_identifier(self):
         logging.debug("Подключение идентификатора " + self.name)
+        logging.debug("Путь " + self.path)
         time.sleep(self.response_time)
         logging.debug("Отключение идентификатора " + self.name)
 
