@@ -205,14 +205,7 @@ def test_creating_user_with_admin_id(keyboard, config, clear_db, log_test_border
     logging.info("Нажатие на кнопку \"Администрирование\"")
 
 
-@pytest.mark.run(order=2)
-@pytest.mark.dependency(depends=["chord_main_admin"])
-@pytest.mark.parametrize(("identifier", "is_admin"),
-                         [pytest.param(identifier, False, id=("User: " + identifier["name"]))
-                         for identifier in identifiers_list] +
-                         [pytest.param(identifier, True, id=("Admin: " + identifier["name"]))
-                         for identifier in identifiers_list])
-def test_chord_user(identifier, is_admin, keyboard, config, clear_db, log_test_borders):
+def account_test(identifier, is_admin, keyboard, config):
     if is_admin:
         logging.info("Начало теста администратора Аккорда с идентификатором " + identifier["name"])
     else:
@@ -250,3 +243,17 @@ def test_chord_user(identifier, is_admin, keyboard, config, clear_db, log_test_b
     logging.info("Нажатие на кнопку \"Администрирование\"")
 
 
+@pytest.mark.run(order=2)
+@pytest.mark.dependency(depends=["chord_main_admin"])
+@pytest.mark.parametrize("identifier",
+                         [pytest.param(identifier, id=(identifier["name"])) for identifier in identifiers_list])
+def test_chord_user(identifier, keyboard, config, clear_db, log_test_borders):
+    account_test(identifier, False, keyboard, config)
+
+
+@pytest.mark.run(order=2)
+@pytest.mark.dependency(depends=["chord_main_admin"])
+@pytest.mark.parametrize("identifier",
+                         [pytest.param(identifier, id=(identifier["name"])) for identifier in identifiers_list])
+def test_chord_admin(identifier, keyboard, config, clear_db, log_test_borders):
+    account_test(identifier, True, keyboard, config)
