@@ -4,6 +4,7 @@ import testing_hardware
 import random
 import os
 import json
+from id_class import Identifier
 
 
 # Making pytest parametrize list for all identifiers
@@ -11,7 +12,7 @@ if os.path.isfile("config.json") is False:
     logging.error("Файла config.json не существует")
     assert False
 with open('config.json') as config_file:
-    identifiers_list = json.load(config_file)["identifiers"]
+    identifiers_list = [Identifier(id_param) for id_param in json.load(config_file)["identifiers"]]
 
 
 def check_correctness_of_interrupt_catching():
@@ -57,7 +58,7 @@ def authentication(identifier, password, keyboard):
 
 def create_account(identifier, password, keyboard):
     logging.info("Нажатие кнопки \"Сменить...\" в поле \"Идентификатор\"")
-    if identifier["rewritable_key"]:
+    if identifier.rewritable_key:
         logging.info("Выбор пункта \"Сгенерировать новый\"")
         # TODO Использовать сгенерированный идентификатор (Вводит ограничение на тестируемые идентификаторы)
     else:
@@ -150,9 +151,9 @@ def test_bios_interrupt_catching(log_test_borders):
                             "config"
                         ])
 @pytest.mark.parametrize("identifier",
-                         [pytest.param(identifier, id=(identifier["name"])) for identifier in identifiers_list])
-def test_chord_main_admin(identifier, keyboard, config, clear_db, log_test_borders):
-    logging.info("Начало теста главного администратора Аккорда с идентификатором " + identifier["name"])
+                         [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
+def test_chord_main_admin(identifier: Identifier, keyboard, clear_db, log_test_borders):
+    logging.info("Начало теста главного администратора Аккорда с идентификатором " + identifier.name)
 
     main_admin_password = generating_password()
     creating_main_admin(identifier, main_admin_password, keyboard)
@@ -160,7 +161,7 @@ def test_chord_main_admin(identifier, keyboard, config, clear_db, log_test_borde
     system_reboot()
 
     logging.info("Аутентификация с неправильным идентификатором")
-    incorrect_identifier = random.choice([id1 for id1 in config["identifiers"] if id1 != identifier])
+    incorrect_identifier = random.choice([id1 for id1 in identifiers_list if id1 != identifier])
     authentication(incorrect_identifier, main_admin_password, keyboard)
     system_reboot()
 
@@ -181,10 +182,10 @@ def test_chord_main_admin(identifier, keyboard, config, clear_db, log_test_borde
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(depends=["chord_main_admin"])
-def test_creating_user_with_admin_id(keyboard, config, clear_db, log_test_borders):
+def test_creating_user_with_admin_id(keyboard, clear_db, log_test_borders):
     logging.info("Начало теста создания пользователя с идентификатором главного администратора")
 
-    main_admin_id = random.choice([identifier for identifier in config["identifiers"]])
+    main_admin_id = random.choice([identifier for identifier in identifiers_list])
     main_admin_password = generating_password()
     creating_main_admin(main_admin_id, main_admin_password, keyboard)
     logging.info("Применение настроек")
@@ -205,13 +206,13 @@ def test_creating_user_with_admin_id(keyboard, config, clear_db, log_test_border
     logging.info("Нажатие на кнопку \"Администрирование\"")
 
 
-def account_test(identifier, is_admin, keyboard, config):
+def account_test(identifier: Identifier, is_admin, keyboard):
     if is_admin:
-        logging.info("Начало теста администратора Аккорда с идентификатором " + identifier["name"])
+        logging.info("Начало теста администратора Аккорда с идентификатором " + identifier.name)
     else:
-        logging.info("Начало теста пользователя Аккорда с идентификатором " + identifier["name"])
+        logging.info("Начало теста пользователя Аккорда с идентификатором " + identifier.name)
 
-    main_admin_id = random.choice([id1 for id1 in config["identifiers"] if id1 != identifier])
+    main_admin_id = random.choice([id1 for id1 in identifiers_list if id1 != identifier])
     main_admin_password = generating_password()
     creating_main_admin(main_admin_id, main_admin_password, keyboard)
     if is_admin:
@@ -246,14 +247,14 @@ def account_test(identifier, is_admin, keyboard, config):
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(depends=["chord_main_admin"])
 @pytest.mark.parametrize("identifier",
-                         [pytest.param(identifier, id=(identifier["name"])) for identifier in identifiers_list])
-def test_chord_user(identifier, keyboard, config, clear_db, log_test_borders):
-    account_test(identifier, False, keyboard, config)
+                         [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
+def test_chord_user(identifier: Identifier, keyboard, clear_db, log_test_borders):
+    account_test(identifier, False, keyboard)
 
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(depends=["chord_main_admin"])
 @pytest.mark.parametrize("identifier",
-                         [pytest.param(identifier, id=(identifier["name"])) for identifier in identifiers_list])
-def test_chord_admin(identifier, keyboard, config, clear_db, log_test_borders):
-    account_test(identifier, True, keyboard, config)
+                         [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
+def test_chord_admin(identifier: Identifier, keyboard, clear_db, log_test_borders):
+    account_test(identifier, True, keyboard)
