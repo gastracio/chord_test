@@ -37,7 +37,7 @@ def check_correctness_of_authentication():
     pass
 
 
-def authentication(identifier, password, keyboard):
+def authentication(identifier: Identifier, password, keyboard):
     """
 
     :param identifier:
@@ -46,7 +46,7 @@ def authentication(identifier, password, keyboard):
     :return: authentication result
     """
     logging.info("Считывание идентификатора")
-    testing_hardware.attach_identifier(identifier)
+    identifier.attach_identifier()
     logging.info("Ввод пароля")
     keyboard.write(password)
     logging.info("Нажатие кнопки ОК")
@@ -56,7 +56,7 @@ def authentication(identifier, password, keyboard):
     return check_correctness_of_authentication()
 
 
-def create_account(identifier, password, keyboard):
+def create_account(identifier: Identifier, password, keyboard):
     logging.info("Нажатие кнопки \"Сменить...\" в поле \"Идентификатор\"")
     if identifier.rewritable_key:
         logging.info("Выбор пункта \"Сгенерировать новый\"")
@@ -66,7 +66,7 @@ def create_account(identifier, password, keyboard):
     logging.info("Нажатие кнопки \"Далее\"")
 
     logging.info("Считывание идентификатора")
-    testing_hardware.attach_identifier(identifier)
+    identifier.attach_identifier()
     # TODO Проверить корректность присваивания идентификатора (Для кейса использования идентификатора администратора)
 
     logging.info("Нажатие кнопки ОК")

@@ -1,3 +1,5 @@
+import time
+import logging
 
 
 class Identifier:
@@ -13,6 +15,12 @@ class Identifier:
         else:
             self.rewritable_key = False
 
+        self.response_time = id_param["identifier_res_time_sec"]
+
+    def attach_identifier(self):
+        logging.debug("Подключение идентификатора " + self.name)
+        time.sleep(self.response_time)
+        logging.debug("Отключение идентификатора " + self.name)
 
 
 
