@@ -52,7 +52,7 @@ def authentication(identifier: Identifier, password, keyboard):
     logging.info("Нажатие кнопки ОК")
     keyboard.press("ENTER")
 
-    logging.info("Проверка удачной аутентификации")
+    logging.info("Проверка результата аутентификации")
     return check_correctness_of_authentication()
 
 
@@ -136,10 +136,8 @@ def test_config(config, log_test_borders):
 
 @pytest.mark.run(order=0)
 @pytest.mark.dependency(name="bios_interrupt_catching", scope="session")
-def test_bios_interrupt_catching(log_test_borders):
+def test_bios_interrupt_catching(pc_power, log_test_borders):
     logging.info("Начало теста перехвата прерывания BIOS")
-    logging.info("Включение питания ПК")
-    testing_hardware.pc_power_switch()
     check_correctness_of_interrupt_catching()
 
 
@@ -152,7 +150,7 @@ def test_bios_interrupt_catching(log_test_borders):
                         ])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
-def test_chord_main_admin(identifier: Identifier, keyboard, clear_db, log_test_borders):
+def test_chord_main_admin(identifier: Identifier, keyboard, clear_db, pc_power, log_test_borders):
     logging.info("Начало теста главного администратора Аккорда с идентификатором " + identifier.name)
 
     main_admin_password = generating_password()
@@ -182,7 +180,7 @@ def test_chord_main_admin(identifier: Identifier, keyboard, clear_db, log_test_b
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(depends=["chord_main_admin"])
-def test_creating_user_with_admin_id(keyboard, clear_db, log_test_borders):
+def test_creating_user_with_admin_id(keyboard, clear_db, pc_power, log_test_borders):
     logging.info("Начало теста создания пользователя с идентификатором главного администратора")
 
     main_admin_id = random.choice([identifier for identifier in identifiers_list])
@@ -248,7 +246,7 @@ def account_test(identifier: Identifier, is_admin, keyboard):
 @pytest.mark.dependency(depends=["chord_main_admin"])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
-def test_chord_user(identifier: Identifier, keyboard, clear_db, log_test_borders):
+def test_chord_user(identifier: Identifier, keyboard, clear_db, pc_power, log_test_borders):
     account_test(identifier, False, keyboard)
 
 
@@ -256,5 +254,5 @@ def test_chord_user(identifier: Identifier, keyboard, clear_db, log_test_borders
 @pytest.mark.dependency(depends=["chord_main_admin"])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
-def test_chord_admin(identifier: Identifier, keyboard, clear_db, log_test_borders):
+def test_chord_admin(identifier: Identifier, keyboard, clear_db, pc_power, log_test_borders):
     account_test(identifier, True, keyboard)

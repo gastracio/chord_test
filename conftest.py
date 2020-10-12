@@ -3,11 +3,13 @@ import logging
 from Py_Keyboard.HID import Keyboard
 import os
 import json
+import testing_hardware
 
 
 @pytest.fixture(scope="session")
 def pc_power():
-    logging.info("Включение ПК")
+    logging.info("Включение питания ПК")
+    testing_hardware.pc_power_switch()
 
 
 @pytest.fixture(scope="session")
