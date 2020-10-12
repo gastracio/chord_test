@@ -271,7 +271,6 @@ class Keycode:
         return 1 << (keycode - 0xE0) if cls.LEFT_CONTROL <= keycode <= cls.RIGHT_GUI else 0
 
 
-
 class Keyboard:
 
     _MAX_KEYPRESSES = 6
@@ -462,6 +461,7 @@ class Keyboard:
             # Write abc followed by Enter to the keyboard
             layout.write('abc\\n')
         """
+        logging.debug("Запись с клавиатуры строки: " + string)
         written_codes = []
         for char in string:
             keycode = self._char_to_keycode(char)
@@ -518,6 +518,7 @@ class Keyboard:
         return keycode
 
     def press(self, keycodes):
+        logging.debug("Нажатие клавиши " + keycodes)
         xys = {}
         for string in keycodes.split():
             xys[string] = string
@@ -593,7 +594,6 @@ class Keyboard:
     def send_report(self, report):
         """ write bytes to HID device """
         with open(self.hid_device, 'rb+') as fd:
-            # logging.debug(report)
             fd.write(report)
 
 

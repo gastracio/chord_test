@@ -58,12 +58,17 @@ def authentication(identifier: Identifier, password, keyboard):
 
 def create_account(identifier: Identifier, password, keyboard):
     logging.info("Нажатие кнопки \"Сменить...\" в поле \"Идентификатор\"")
+    # TODO Не работает нажатие кнопки "Сменить" для идентификатора
     if identifier.rewritable_key:
         logging.info("Выбор пункта \"Сгенерировать новый\"")
-        # TODO Использовать сгенерированный идентификатор (Вводит ограничение на тестируемые идентификаторы)
+        keyboard.press("TAB")
+        keyboard.press("TAB")
+        keyboard.press("DOWN_ARROW")
+        keyboard.press("TAB")
     else:
         logging.info("Выбор пункта \"Использовать существующий\"")
     logging.info("Нажатие кнопки \"Далее\"")
+    keyboard.press("ENTER")
 
     logging.info("Считывание идентификатора")
     identifier.attach_identifier()
@@ -71,8 +76,10 @@ def create_account(identifier: Identifier, password, keyboard):
 
     logging.info("Нажатие кнопки ОК")
     keyboard.press("ENTER")
+    keyboard.press("TAB")
 
     logging.info("Нажатие кнопки \"Сменить...\" в поле \"Пароль\"")
+    # TODO Не работает нажатие кнопки "Сменить" для Пароля
     logging.info("Ввод пароля")
     logging.debug("Пароль: " + password)
     keyboard.write(password)
@@ -86,12 +93,17 @@ def create_account(identifier: Identifier, password, keyboard):
     keyboard.press("TAB")
     keyboard.press("ENTER")
 
-    # TODO Проверка успешности создания пользователя с помощью логов АМДЗ
+    # TODO Проверка успешности создания пользователя с помощью логов АМДЗ (Для кейса создания пользователя используя
+    #  идентификатор Гл.Администратора)
 
 
 def creating_main_admin(identifier, password, keyboard):
     logging.info("Переход в настройки гл. администратора")
     keyboard.press("ENTER")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("TAB")
+    keyboard.press("TAB")
+
     logging.info("Создание пользователя")
     create_account(identifier, password, keyboard)
 
@@ -156,6 +168,8 @@ def test_chord_main_admin(identifier: Identifier, keyboard, clear_db, pc_power, 
     main_admin_password = generating_password()
     creating_main_admin(identifier, main_admin_password, keyboard)
     logging.info("Применение настроек")
+    keyboard.press("F5")
+    keyboard.press("ENTER")
     system_reboot()
 
     logging.info("Аутентификация с неправильным идентификатором")
@@ -164,6 +178,8 @@ def test_chord_main_admin(identifier: Identifier, keyboard, clear_db, pc_power, 
     system_reboot()
 
     logging.info("Аутентификация с неправильным паролем")
+    # TODO Сделать три попытки аутентификации с детектированием события превышения попыток аутентификации
+    #  (для кейса проверки неправильных паролей)
     authentication(identifier, main_admin_password + "F", keyboard)
     system_reboot()
 
@@ -171,11 +187,17 @@ def test_chord_main_admin(identifier: Identifier, keyboard, clear_db, pc_power, 
     authentication(identifier, main_admin_password, keyboard)
 
     logging.info("Нажатие на кнопку \"Продолжить загрузку\"")
+    keyboard.press("TAB")
+    keyboard.press("TAB")
+    keyboard.press("ENTER")
+
     logging.info("Проверка корректности загрузки ОС")
     system_reboot()
 
     authentication(identifier, main_admin_password, keyboard)
     logging.info("Нажатие на кнопку \"Администрирование\"")
+    keyboard.press("TAB")
+    keyboard.press("ENTER")
 
 
 @pytest.mark.run(order=2)
