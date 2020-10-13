@@ -4,6 +4,7 @@ import testing_hardware
 import random
 import os
 import json
+import time
 from id_class import Identifier
 
 
@@ -28,6 +29,13 @@ def system_reboot():
     testing_hardware.pc_reboot()
 
     check_correctness_of_interrupt_catching()
+
+
+def apply_settings(keyboard):
+    logging.info("Применение настроек")
+    keyboard.press("F5")
+    time.sleep(1)
+    keyboard.press("ENTER")
 
 
 def check_correctness_of_authentication():
@@ -169,8 +177,7 @@ def test_chord_main_admin(identifier: Identifier, keyboard, clear_db, pc_power, 
 
     main_admin_password = generating_password()
     creating_main_admin(identifier, main_admin_password, keyboard)
-    logging.info("Применение настроек")
-    keyboard.press("F5")
+    apply_settings(keyboard)
     keyboard.press("ENTER")
     system_reboot()
 
@@ -210,7 +217,7 @@ def test_creating_user_with_admin_id(keyboard, clear_db, pc_power, log_test_bord
     main_admin_id = random.choice([identifier for identifier in identifiers_list])
     main_admin_password = generating_password()
     creating_main_admin(main_admin_id, main_admin_password, keyboard)
-    logging.info("Применение настроек")
+    apply_settings(keyboard)
     system_reboot()
 
     authentication(main_admin_id, main_admin_password, keyboard)
@@ -230,6 +237,8 @@ def test_creating_user_with_admin_id(keyboard, clear_db, pc_power, log_test_bord
 
     authentication(main_admin_id, main_admin_password, keyboard)
     logging.info("Нажатие на кнопку \"Администрирование\"")
+    keyboard.press("TAB")
+    keyboard.press("ENTER")
 
 
 def account_test(identifier: Identifier, is_admin, keyboard):
@@ -246,14 +255,17 @@ def account_test(identifier: Identifier, is_admin, keyboard):
         account_name = "Admin"
     else:
         logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
+        keyboard.press("DOWN_ARROW")
+        keyboard.press("DOWN_ARROW")
         account_name = "User"
     account_password = generating_password()
     creating_user(identifier, account_name, account_password, keyboard)
-    logging.info("Применение настроек")
+    apply_settings(keyboard)
     system_reboot()
 
     logging.info("Аутентификация с неправильным паролем")
-    # TODO Делать аутентификацию до тех пор, пока не закроется доступ до администрирования
+    # TODO Делать аутентификацию до тех пор, пока не закроется доступ до администрирования (для кейса с неправильным
+    #  паролем)
     authentication(identifier, account_password + "F", keyboard)
     system_reboot()
 
@@ -263,11 +275,16 @@ def account_test(identifier: Identifier, is_admin, keyboard):
         logging.info("Аутентификация пользователя")
     authentication(identifier, account_password, keyboard)
     logging.info("Нажатие на кнопку \"Продолжить загрузку\"")
+    keyboard.press("TAB")
+    keyboard.press("TAB")
+    keyboard.press("ENTER")
     logging.info("Проверка корректности загрузки ОС")
     system_reboot()
 
     authentication(main_admin_id, main_admin_password, keyboard)
     logging.info("Нажатие на кнопку \"Администрирование\"")
+    keyboard.press("TAB")
+    keyboard.press("ENTER")
 
 
 @pytest.mark.run(order=2)
