@@ -57,8 +57,9 @@ def authentication(identifier: Identifier, password, keyboard):
 
 
 def create_account(identifier: Identifier, password, keyboard):
+    keyboard.press("TAB")
     logging.info("Нажатие кнопки \"Сменить...\" в поле \"Идентификатор\"")
-    # TODO Не работает нажатие кнопки "Сменить" для идентификатора
+    keyboard.press("SPACE")
     if identifier.rewritable_key:
         logging.info("Выбор пункта \"Сгенерировать новый\"")
         keyboard.press("TAB")
@@ -79,7 +80,7 @@ def create_account(identifier: Identifier, password, keyboard):
     keyboard.press("TAB")
 
     logging.info("Нажатие кнопки \"Сменить...\" в поле \"Пароль\"")
-    # TODO Не работает нажатие кнопки "Сменить" для Пароля
+    keyboard.press("SPACE")
     logging.info("Ввод пароля")
     logging.debug("Пароль: " + password)
     keyboard.write(password)
@@ -102,7 +103,6 @@ def creating_main_admin(identifier, password, keyboard):
     keyboard.press("ENTER")
     keyboard.press("DOWN_ARROW")
     keyboard.press("TAB")
-    keyboard.press("TAB")
 
     logging.info("Создание пользователя")
     create_account(identifier, password, keyboard)
@@ -110,11 +110,13 @@ def creating_main_admin(identifier, password, keyboard):
 
 def creating_user(identifier, username, password, keyboard):
     logging.info("Нажатие кномки \"Создание новой учетной записи\"")
+    keyboard.press("F1")
     logging.info("Ввод имени пользователя: " + username)
     keyboard.write(username)
     logging.info("Нажатие кнопки ОК")
     keyboard.press("ENTER")
     logging.info("Переход в настройки пользователя " + username)
+    keyboard.press("TAB")
     create_account(identifier, password, keyboard)
 
 
@@ -213,8 +215,12 @@ def test_creating_user_with_admin_id(keyboard, clear_db, pc_power, log_test_bord
 
     authentication(main_admin_id, main_admin_password, keyboard)
     logging.info("Нажатие на кнопку \"Администрирование\"")
+    keyboard.press("TAB")
+    keyboard.press("ENTER")
 
     logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
     username = "User"
     user_password = generating_password()
     logging.info("Попытка создать пользователя с идентификатором главного администратора")
