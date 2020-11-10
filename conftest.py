@@ -14,10 +14,7 @@ def pc_power():
 
 @pytest.fixture(scope="session")
 def keyboard():
-    # TODO Add linux gadget hid device
-    file = open('keyboard.txt', 'w+')
-    file.close()
-    keyboard = Keyboard("keyboard.txt")
+    keyboard = Keyboard("/dev/hidg0")
     yield keyboard
 
 

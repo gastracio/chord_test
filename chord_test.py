@@ -16,12 +16,15 @@ with open('config.json') as config_file:
     identifiers_list = [Identifier(id_param) for id_param in json.load(config_file)["identifiers"]]
 
 
+def wait_authentication_req():
+    logging.info("Ожидание запроса аутентификации")
+
+
 def check_correctness_of_interrupt_catching():
     """
     :return: True or False
     """
     logging.info("Проверка корректности перехвата прерывания BIOS")
-    logging.info("Ожидание запроса аутентификации")
 
 
 def system_reboot():
@@ -29,6 +32,7 @@ def system_reboot():
     testing_hardware.pc_reboot()
 
     check_correctness_of_interrupt_catching()
+    wait_authentication_req()
 
 
 def apply_settings(keyboard):
@@ -140,6 +144,13 @@ def clear_db(keyboard):
     logging.info("Нажатие кнопки ОК")
     keyboard.press("ENTER")
     check_correctness_of_interrupt_catching()
+
+
+def test_keyboard(keyboard, log_test_borders):
+    logging.info("Начало теста клавиатуры")
+
+    keyboard.press("CONTROL ALT T")
+    keyboard.write('ls\n')
 
 
 @pytest.mark.run(order=0)

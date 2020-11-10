@@ -41,14 +41,14 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-* Перезапустить окружение:
+* Выйти из окружения:
 ```commandline
-deactivate && source venv/bin/activate
+deactivate
 ```
 
 * Записать необходимую конфигурационую информацию в `config.json`
 
 * Запустить тесты:
 ```commandline
-pytest
+sudo venv/bin/pytest
 ```
