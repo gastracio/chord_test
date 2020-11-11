@@ -161,6 +161,14 @@ def test_config(config, log_test_borders):
 
 
 @pytest.mark.run(order=0)
+@pytest.mark.dependency(name="video_grabber", scope="session")
+def test_video_grabber(display):
+    if display.snapshot() != 200:
+        logging.error("Video grabber отсоединен или работает не корректно")
+        assert False
+
+
+@pytest.mark.run(order=0)
 @pytest.mark.dependency(name="bios_interrupt_catching", scope="session")
 def test_bios_interrupt_catching(pc, log_test_borders):
     logging.info("Начало теста перехвата прерывания BIOS")
@@ -172,6 +180,7 @@ def test_bios_interrupt_catching(pc, log_test_borders):
                         scope="session",
                         depends=[
                             "bios_interrupt_catching",
+                            "video_grabber",
                             "config"
                         ])
 @pytest.mark.parametrize("identifier",

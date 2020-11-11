@@ -1,10 +1,12 @@
 import pytest
 import logging
-from Py_Keyboard.HID import Keyboard
 import os
 import json
 import testing_hardware
 import time
+from Py_Keyboard.HID import Keyboard
+from display_processing import Display
+
 
 
 @pytest.fixture(scope="session")
@@ -21,6 +23,12 @@ def pc():
 def keyboard():
     keyboard = Keyboard("/dev/hidg0")
     yield keyboard
+
+
+@pytest.fixture(scope="session")
+def display():
+    display = Display()
+    yield display
 
 
 @pytest.fixture(scope="session")
