@@ -4,12 +4,17 @@ from Py_Keyboard.HID import Keyboard
 import os
 import json
 import testing_hardware
+import time
 
 
 @pytest.fixture(scope="session")
-def pc_power():
+def pc():
+    hardware = testing_hardware.TestingHardware()
     logging.info("Включение питания ПК")
-    testing_hardware.pc_power_switch()
+    hardware.power_switch()
+    # TODO Сделать обратную связь из графического интерфейса о загрузке ОС Аккорда
+    time.sleep(20)
+    yield hardware
 
 
 @pytest.fixture(scope="session")

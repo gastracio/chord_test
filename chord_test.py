@@ -1,11 +1,11 @@
 import pytest
 import logging
-import testing_hardware
 import random
 import os
 import json
 import time
 from id_class import Identifier
+from testing_hardware import TestingHardware
 
 
 # Making pytest parametrize list for all identifiers
@@ -27,9 +27,9 @@ def check_correctness_of_interrupt_catching():
     logging.info("Проверка корректности перехвата прерывания BIOS")
 
 
-def system_reboot():
+def system_reboot(pc: TestingHardware):
     logging.info("Перезагрузка ПК")
-    testing_hardware.pc_reboot()
+    pc.reboot()
 
     check_correctness_of_interrupt_catching()
     wait_authentication_req()
@@ -146,13 +146,6 @@ def clear_db(keyboard):
     check_correctness_of_interrupt_catching()
 
 
-def test_keyboard(keyboard, log_test_borders):
-    logging.info("Начало теста клавиатуры")
-
-    keyboard.press("CONTROL ALT T")
-    keyboard.write('ls\n')
-
-
 @pytest.mark.run(order=0)
 @pytest.mark.dependency(name="config", scope="session")
 def test_config(config, log_test_borders):
@@ -169,7 +162,7 @@ def test_config(config, log_test_borders):
 
 @pytest.mark.run(order=0)
 @pytest.mark.dependency(name="bios_interrupt_catching", scope="session")
-def test_bios_interrupt_catching(pc_power, log_test_borders):
+def test_bios_interrupt_catching(pc, log_test_borders):
     logging.info("Начало теста перехвата прерывания BIOS")
     check_correctness_of_interrupt_catching()
 
@@ -183,25 +176,25 @@ def test_bios_interrupt_catching(pc_power, log_test_borders):
                         ])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
-def test_chord_main_admin(identifier: Identifier, keyboard, clear_db, pc_power, log_test_borders):
+def test_chord_main_admin(identifier: Identifier, keyboard, pc, clear_db, log_test_borders):
     logging.info("Начало теста главного администратора Аккорда с идентификатором " + identifier.name)
 
     main_admin_password = generating_password()
     creating_main_admin(identifier, main_admin_password, keyboard)
     apply_settings(keyboard)
     keyboard.press("ENTER")
-    system_reboot()
+    system_reboot(pc)
 
     logging.info("Аутентификация с неправильным идентификатором")
     incorrect_identifier = random.choice([id1 for id1 in identifiers_list if id1 != identifier])
     authentication(incorrect_identifier, main_admin_password, keyboard)
-    system_reboot()
+    system_reboot(pc)
 
     logging.info("Аутентификация с неправильным паролем")
     # TODO Сделать три попытки аутентификации с детектированием события превышения попыток аутентификации
     #  (для кейса проверки неправильных паролей)
     authentication(identifier, main_admin_password + "F", keyboard)
-    system_reboot()
+    system_reboot(pc)
 
     logging.info("Аутентификация главного администратора")
     authentication(identifier, main_admin_password, keyboard)
@@ -212,7 +205,7 @@ def test_chord_main_admin(identifier: Identifier, keyboard, clear_db, pc_power, 
     keyboard.press("ENTER")
 
     logging.info("Проверка корректности загрузки ОС")
-    system_reboot()
+    system_reboot(pc)
 
     authentication(identifier, main_admin_password, keyboard)
     logging.info("Нажатие на кнопку \"Администрирование\"")
@@ -222,14 +215,14 @@ def test_chord_main_admin(identifier: Identifier, keyboard, clear_db, pc_power, 
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(depends=["chord_main_admin"])
-def test_creating_user_with_admin_id(keyboard, clear_db, pc_power, log_test_borders):
+def test_creating_user_with_admin_id(keyboard, pc, clear_db, log_test_borders):
     logging.info("Начало теста создания пользователя с идентификатором главного администратора")
 
     main_admin_id = random.choice([identifier for identifier in identifiers_list])
     main_admin_password = generating_password()
     creating_main_admin(main_admin_id, main_admin_password, keyboard)
     apply_settings(keyboard)
-    system_reboot()
+    system_reboot(pc)
 
     authentication(main_admin_id, main_admin_password, keyboard)
     logging.info("Нажатие на кнопку \"Администрирование\"")
@@ -244,7 +237,7 @@ def test_creating_user_with_admin_id(keyboard, clear_db, pc_power, log_test_bord
     logging.info("Попытка создать пользователя с идентификатором главного администратора")
     creating_user(main_admin_id, username, user_password, keyboard)
     # TODO Сделать проверку ошибки присваивания неправильного идентификатора
-    system_reboot()
+    system_reboot(pc)
 
     authentication(main_admin_id, main_admin_password, keyboard)
     logging.info("Нажатие на кнопку \"Администрирование\"")
@@ -252,7 +245,7 @@ def test_creating_user_with_admin_id(keyboard, clear_db, pc_power, log_test_bord
     keyboard.press("ENTER")
 
 
-def account_test(identifier: Identifier, is_admin, keyboard):
+def account_test(identifier: Identifier, pc: TestingHardware, is_admin, keyboard):
     if is_admin:
         logging.info("Начало теста администратора Аккорда с идентификатором " + identifier.name)
     else:
@@ -272,13 +265,13 @@ def account_test(identifier: Identifier, is_admin, keyboard):
     account_password = generating_password()
     creating_user(identifier, account_name, account_password, keyboard)
     apply_settings(keyboard)
-    system_reboot()
+    system_reboot(pc)
 
     logging.info("Аутентификация с неправильным паролем")
     # TODO Делать аутентификацию до тех пор, пока не закроется доступ до администрирования (для кейса с неправильным
     #  паролем)
     authentication(identifier, account_password + "F", keyboard)
-    system_reboot()
+    system_reboot(pc)
 
     if is_admin:
         logging.info("Аутентификация администратора")
@@ -290,7 +283,7 @@ def account_test(identifier: Identifier, is_admin, keyboard):
     keyboard.press("TAB")
     keyboard.press("ENTER")
     logging.info("Проверка корректности загрузки ОС")
-    system_reboot()
+    system_reboot(pc)
 
     authentication(main_admin_id, main_admin_password, keyboard)
     logging.info("Нажатие на кнопку \"Администрирование\"")
@@ -302,13 +295,13 @@ def account_test(identifier: Identifier, is_admin, keyboard):
 @pytest.mark.dependency(depends=["chord_main_admin"])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
-def test_chord_user(identifier: Identifier, keyboard, clear_db, pc_power, log_test_borders):
-    account_test(identifier, False, keyboard)
+def test_chord_user(identifier: Identifier, keyboard, pc, clear_db, log_test_borders):
+    account_test(identifier, pc, False, keyboard)
 
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(depends=["chord_main_admin"])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
-def test_chord_admin(identifier: Identifier, keyboard, clear_db, pc_power, log_test_borders):
-    account_test(identifier, True, keyboard)
+def test_chord_admin(identifier: Identifier, keyboard, pc, clear_db, log_test_borders):
+    account_test(identifier, pc, True, keyboard)
