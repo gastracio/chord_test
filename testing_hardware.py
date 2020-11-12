@@ -21,11 +21,17 @@ class TestingHardware:
         time.sleep(0.2)
         GPIO.output(self.__power_pin, GPIO.HIGH)
 
+        logging.debug("Задержка 45 секунд")
+        time.sleep(45)
+
     def reboot(self):
         logging.debug("Нажатие на кнопку перезагрузки питания на АРМ")
         GPIO.output(self.__reboot_pin, GPIO.LOW)
         time.sleep(0.2)
         GPIO.output(self.__reboot_pin, GPIO.HIGH)
+
+        logging.debug("Задержка 45 секунд")
+        time.sleep(45)
 
     def __del__(self):
         GPIO.cleanup()

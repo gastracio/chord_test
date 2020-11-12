@@ -142,6 +142,10 @@ def generating_password():
 def clear_db(keyboard):
     yield
     logging.info("Очитска базы данных")
+    # TODO: Заменить возможно, неправильную клавишу для очиски БД
+    time.sleep(60)
+    keyboard.press("F6")
+    time.sleep(1)
     logging.info("Нажатие кнопки ОК")
     keyboard.press("ENTER")
     check_correctness_of_interrupt_catching()

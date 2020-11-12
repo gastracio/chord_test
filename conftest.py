@@ -14,7 +14,6 @@ def pc():
     logging.info("Включение питания ПК")
     hardware.power_switch()
     # TODO Сделать обратную связь из графического интерфейса о загрузке ОС Аккорда
-    # time.sleep(20)
     yield hardware
 
 

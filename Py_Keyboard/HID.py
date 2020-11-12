@@ -502,7 +502,6 @@ class Keyboard:
 
         return (keycode,)
 
-
     def _char_to_keycode(self, char):
         """Return the HID keycode for the given ASCII character, with the SHIFT_FLAG possibly set.
 
@@ -527,6 +526,8 @@ class Keyboard:
             self._add_keycode_to_report(int(keycode))
         self.send_report(self.report)
         Keyboard.release_all(self)
+        # TODO: Поэкспериментировать с задержкой клавиатуры
+        time.sleep(1)
         return self.report
 
     def writer(self, *keycodes):
