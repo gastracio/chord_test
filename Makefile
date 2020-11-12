@@ -17,3 +17,6 @@ power:
 
 reboot:
 	venv/bin/python power.py reboot
+
+dis_keys:
+	venv/bin/python interrupter.py disconnect

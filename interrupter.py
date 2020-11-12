@@ -1,5 +1,6 @@
 from smartcard.System import readers
 import time
+import sys
 
 Cla_1 = [0x00]
 Ins_1 = [0x67]
@@ -133,6 +134,28 @@ command_4 = [0x00, 0x66, 0x02, 0x00, 0xFF, 0x02,
              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
              0x00, 0x00, 0x00, 0x00, 0x00]
 
+
+if sys.argv[1] == "disconnect":
+    readers_list = readers()
+    print(readers_list)
+
+    connections_list = []
+    for r in readers_list:
+        connection_dummy = r.createConnection()
+        connection_dummy.connect()
+        connections_list.append(connection_dummy)
+
+    for connection in connections_list:
+        data = connection.transmit(command_3)
+        print(data)
+
+        data = connection.transmit(command_4)
+        print(data)
+        time.sleep(1)
+
+    exit(0)
+
+
 r = readers()
 print(r)
 connection_1 = r[0].createConnection()
@@ -142,24 +165,23 @@ connection_2 = r[1].createConnection()
 connection_2.connect()
 
 for connection in [connection_1, connection_2]:
-    for i in range(1):
-        print("Connecting device")
-        # command = Cla_1 + Ins_1 + P1_1 + P2_1 + Le_1 + Data_1
-        data = connection.transmit(command_1)
-        print(data)
+    print("Connecting device")
+    # command = Cla_1 + Ins_1 + P1_1 + P2_1 + Le_1 + Data_1
+    data = connection.transmit(command_1)
+    print(data)
 
-        # command = Cla_2 + Ins_2 + P1_2 + P2_2 + Le_2 + Data_2
-        data = connection.transmit(command_2)
-        print(data)
+    # command = Cla_2 + Ins_2 + P1_2 + P2_2 + Le_2 + Data_2
+    data = connection.transmit(command_2)
+    print(data)
 
-        time.sleep(1)
+    time.sleep(1)
 
-        print("Disconnecting device")
-        # command = Cla_3 + Ins_3 + P1_3 + P2_3 + Le_3 + Data_3
-        data = connection.transmit(command_3)
-        print(data)
+    print("Disconnecting device")
+    # command = Cla_3 + Ins_3 + P1_3 + P2_3 + Le_3 + Data_3
+    data = connection.transmit(command_3)
+    print(data)
 
-        # command = Cla_4 + Ins_4 + P1_4 + P2_4 + Le_4 + Data_4
-        data = connection.transmit(command_4)
-        print(data)
-        time.sleep(1)
+    # command = Cla_4 + Ins_4 + P1_4 + P2_4 + Le_4 + Data_4
+    data = connection.transmit(command_4)
+    print(data)
+    time.sleep(1)
