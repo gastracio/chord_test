@@ -6,6 +6,7 @@ import json
 import time
 from id_class import Identifier
 from testing_hardware import TestingHardware
+from smartcard.System import readers
 
 
 # Making pytest parametrize list for all identifiers
@@ -162,14 +163,35 @@ def test_config(config, log_test_borders):
 
 @pytest.mark.run(order=0)
 @pytest.mark.dependency(name="video_grabber", scope="session")
-def test_video_grabber(display):
+def test_video_grabber(display, log_test_borders):
+    logging.info("Начало теста устройства захвата видео")
+    logging.info("Попытка сделать скриншон экрана")
     if display.snapshot() != 200:
-        logging.error("Video grabber отсоединен или работает не корректно")
+        logging.error("Устройство захвата видео отсоединено или работает не корректно")
         assert False
 
 
 @pytest.mark.run(order=0)
-@pytest.mark.dependency(name="bios_interrupt_catching", scope="session")
+@pytest.mark.dependency(name="video_grabber", scope="session")
+def test_interrupters(log_test_borders):
+    logging.info("Начало теста прерывателей USB")
+    readers_list = readers()
+    if len(readers_list) < 2:
+        logging.error("К стенду подключено меньше двух прерывателей")
+        assert False
+
+    interrupters_paths = [identifier.path for identifier in identifiers_list]
+    reader_names = [reader.name for reader in readers_list]
+    for interrupter in interrupters_paths:
+        if interrupter not in reader_names:
+            logging.error("Указанный в конфигурационном файле идентификатор не подключен к стенду")
+            logging.debug("Данный прерыватель не подключен к стенду" + interrupter)
+
+
+@pytest.mark.run(order=0)
+@pytest.mark.dependency(name="bios_interrupt_catching",
+                        scope="session",
+                        depends=["video_grabber"])
 def test_bios_interrupt_catching(pc, log_test_borders):
     logging.info("Начало теста перехвата прерывания BIOS")
     check_correctness_of_interrupt_catching()
@@ -180,7 +202,6 @@ def test_bios_interrupt_catching(pc, log_test_borders):
                         scope="session",
                         depends=[
                             "bios_interrupt_catching",
-                            "video_grabber",
                             "config"
                         ])
 @pytest.mark.parametrize("identifier",

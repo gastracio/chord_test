@@ -8,14 +8,13 @@ from Py_Keyboard.HID import Keyboard
 from display_processing import Display
 
 
-
 @pytest.fixture(scope="session")
 def pc():
     hardware = testing_hardware.TestingHardware()
     logging.info("Включение питания ПК")
     hardware.power_switch()
     # TODO Сделать обратную связь из графического интерфейса о загрузке ОС Аккорда
-    time.sleep(20)
+    # time.sleep(20)
     yield hardware
 
 
