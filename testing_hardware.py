@@ -21,7 +21,7 @@ class TestingHardware:
         time.sleep(0.2)
         GPIO.output(self.__power_pin, GPIO.HIGH)
 
-        logging.debug("Задержка 45 секунд")
+        logging.debug("Задержка " + str(timeout) + " секунд")
         time.sleep(timeout)
 
     def reboot(self, timeout=45):
@@ -30,7 +30,7 @@ class TestingHardware:
         time.sleep(0.2)
         GPIO.output(self.__reboot_pin, GPIO.HIGH)
 
-        logging.debug("Задержка 45 секунд")
+        logging.debug("Задержка " + str(timeout) + " секунд")
         time.sleep(timeout)
 
     def __del__(self):

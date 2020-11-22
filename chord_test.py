@@ -7,6 +7,7 @@ import time
 from id_class import Identifier
 from testing_hardware import TestingHardware
 from smartcard.System import readers
+from Py_Keyboard.HID import Keyboard
 
 
 # Making pytest parametrize list for all identifiers
@@ -39,8 +40,9 @@ def system_reboot(pc: TestingHardware):
 def apply_settings(keyboard):
     logging.info("Применение настроек")
     keyboard.press("F5")
-    time.sleep(1)
+    time.sleep(1.5)
     keyboard.press("ENTER")
+    time.sleep(1.5)
 
 
 def check_correctness_of_authentication():
@@ -146,11 +148,15 @@ def clear_db(keyboard):
     yield
     logging.info("Очитска базы данных")
     # TODO: Заменить возможно, неправильную клавишу для очиски БД
-    time.sleep(60)
     keyboard.press("F6")
     time.sleep(1)
     logging.info("Нажатие кнопки ОК")
     keyboard.press("ENTER")
+    time.sleep(1)
+    logging.info("Нажатие кнопки ОК")
+    keyboard.press("ENTER")
+    logging.debug("Задержка 60 секунд")
+    time.sleep(60)
     check_correctness_of_interrupt_catching()
 
 
@@ -179,7 +185,7 @@ def test_video_grabber(display, log_test_borders):
 
 
 @pytest.mark.run(order=0)
-@pytest.mark.dependency(name="video_grabber", scope="session")
+@pytest.mark.dependency(name="interrupter", scope="session")
 def test_interrupters(log_test_borders):
     logging.info("Начало теста прерывателей USB")
     readers_list = readers()
@@ -196,9 +202,32 @@ def test_interrupters(log_test_borders):
 
 
 @pytest.mark.run(order=0)
+@pytest.mark.dependency(name="keyboard_connecting", scope="session")
+def test_keyboard_connecting(pc, log_test_borders):
+    logging.info("Начало теста проверки соединения для эмуляции клавиатуры")
+    error_fl = False
+    try:
+        logging.info("Попытка провести инициализацию модуля эмуляции клавиатуры")
+        Keyboard("/dev/hidg0")
+    except Exception as e:
+        logging.error("Проблема при инициализации модуля эмуляции клавиатуры")
+        logging.error(e)
+        logging.info("Проверьте шнур USB type C -- USB, который используется для эмуляции клавиатуры")
+        error_fl = True
+
+    if error_fl:
+        assert False
+
+
+@pytest.mark.run(order=0)
 @pytest.mark.dependency(name="bios_interrupt_catching",
                         scope="session",
-                        depends=["video_grabber"])
+                        depends=[
+                            "video_grabber",
+                            "keyboard_connecting",
+                            "interrupter",
+                            "config"
+                        ])
 def test_bios_interrupt_catching(pc, log_test_borders):
     logging.info("Начало теста перехвата прерывания BIOS")
     check_correctness_of_interrupt_catching()
@@ -268,6 +297,8 @@ def test_creating_user_with_admin_id(keyboard, pc, clear_db, log_test_borders):
     logging.info("Нажатие на кнопку \"Администрирование\"")
     keyboard.press("TAB")
     keyboard.press("ENTER")
+    logging.debug("Задержка 3 секунд")
+    time.sleep(3)
 
     logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
     keyboard.press("DOWN_ARROW")

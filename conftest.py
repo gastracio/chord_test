@@ -17,6 +17,14 @@ def pc():
     logging.debug("Задержка 15 секунд")
     time.sleep(15)
     yield hardware
+    logging.info("Перезагрузка")
+    hardware.reboot(0)
+
+    logging.debug("Задержка 2 секунды")
+    time.sleep(2)
+
+    logging.info("Выключение питания")
+    hardware.power_switch(0)
 
 
 @pytest.fixture(scope="session")

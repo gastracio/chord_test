@@ -6,8 +6,12 @@ all: deploy
 deploy:
 	rsync -av -e ssh --exclude='venv/' --exclude='*.log' --exclude='*cache*/' --exclude='.*/' . $(pi_user)@$(pi_ip):~/chord_test
 
-run:
-	sudo venv/bin/pytest
+install:
+	python3 -m venv ./venv
+	venv/bin/pip install -r requirements.txt
+
+uninstall:
+	rm -r venv
 
 power_on:
 	venv/bin/python power.py power
@@ -29,9 +33,11 @@ interrupter_list:
 interrupter_list_verbose:
 	sudo timeout 4 sudo pcsc_scan
 
-install:
-	python3 -m venv ./venv
-	venv/bin/pip install -r requirements.txt
+clean:
+	rm -rf .idea .pytest_cache __pycache__ test_report_*
 
-uninstall:
-	rm -r venv
+run:
+	sudo venv/bin/pytest
+
+check_hardware:
+	# TOOD: Make pytest hardware test run
