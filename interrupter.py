@@ -155,6 +155,11 @@ if sys.argv[1] == "disconnect":
 
     exit(0)
 
+if sys.argv[1] == "list":
+    readers_list = readers()
+    print(readers_list)
+
+    exit(0)
 
 r = readers()
 print(r)

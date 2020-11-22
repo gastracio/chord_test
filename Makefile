@@ -4,7 +4,7 @@ pi_ip=192.168.0.5
 all: deploy_main
 
 deploy_main:
-	rsync -av -e ssh --exclude='venv/' --exclude='*.log' --exclude='*cache*/' --exclude='.*/' . pi@192.168.0.5:~/chord_test
+	rsync -av -e ssh --exclude='venv/' --exclude='*.log' --exclude='*cache*/' --exclude='.*/' . $(pi_user)@$(pi_ip):~/chord_test
 
 deploy:
 	rsync -avzhe ssh . $(pi_user)@$(pi_ip):~/chord_test
@@ -26,3 +26,13 @@ reboot:
 
 dis_keys:
 	venv/bin/python interrupter.py disconnect
+
+interrupter_list:
+	venv/bin/python interrupter.py list
+
+install:
+	python3 -m venv ./venv
+	venv/bin/pip install -r requirements.txt
+
+uninstall:
+	rm -r venv
