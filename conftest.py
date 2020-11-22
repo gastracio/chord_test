@@ -14,6 +14,8 @@ def pc():
     logging.info("Включение питания ПК")
     hardware.power_switch()
     # TODO Сделать обратную связь из графического интерфейса о загрузке ОС Аккорда
+    logging.debug("Задержка 15 секунд")
+    time.sleep(15)
     yield hardware
 
 

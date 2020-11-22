@@ -527,7 +527,7 @@ class Keyboard:
         self.send_report(self.report)
         Keyboard.release_all(self)
         # TODO: Поэкспериментировать с задержкой клавиатуры
-        time.sleep(1)
+        time.sleep(0.5)
         return self.report
 
     def writer(self, *keycodes):

@@ -44,6 +44,9 @@ def apply_settings(keyboard):
 
 
 def check_correctness_of_authentication():
+    # TODO: Сделать проверку
+    logging.debug("Задержка 5 секунд")
+    time.sleep(5)
     """
     :return: True of False
     """
@@ -245,6 +248,9 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, clear_db, log_te
     logging.info("Нажатие на кнопку \"Администрирование\"")
     keyboard.press("TAB")
     keyboard.press("ENTER")
+    # TODO: Сделать получение обратной связи из графического интерфейса
+    logging.debug("Задержка 3 секунд")
+    time.sleep(3)
 
 
 @pytest.mark.run(order=2)

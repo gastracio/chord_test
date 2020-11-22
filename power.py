@@ -7,12 +7,12 @@ pc = TestingHardware()
 
 if sys.argv[1] == "reboot":
     print("Reboot")
-    pc.reboot()
+    pc.reboot(0)
     exit(0)
 
 if sys.argv[1] == "power":
     print("Power switch")
-    pc.reboot()
+    pc.power_switch(0)
     exit(0)
 
 

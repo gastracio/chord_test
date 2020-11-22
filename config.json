@@ -4,14 +4,14 @@
     {
       "name": "id_name_1",
       "path": "USB Switcher (00000000) 00 00",
-      "rewritable_key": "True",
-      "identifier_res_time_sec": 5
+      "rewritable_key": "False",
+      "identifier_res_time_sec": 7
     },
     {
       "name": "id_name_2",
       "path": "USB Switcher (00000000) 01 00",
       "rewritable_key": "False",
-      "identifier_res_time_sec": 5
+      "identifier_res_time_sec": 7
     }
   ]
 }
