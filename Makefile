@@ -1,13 +1,10 @@
 pi_user=pi
 pi_ip=192.168.0.5
 
-all: deploy_main
-
-deploy_main:
-	rsync -av -e ssh --exclude='venv/' --exclude='*.log' --exclude='*cache*/' --exclude='.*/' . $(pi_user)@$(pi_ip):~/chord_test
+all: deploy
 
 deploy:
-	rsync -avzhe ssh . $(pi_user)@$(pi_ip):~/chord_test
+	rsync -av -e ssh --exclude='venv/' --exclude='*.log' --exclude='*cache*/' --exclude='.*/' . $(pi_user)@$(pi_ip):~/chord_test
 
 run:
 	sudo venv/bin/pytest
