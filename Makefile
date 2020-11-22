@@ -30,6 +30,9 @@ dis_keys:
 interrupter_list:
 	venv/bin/python interrupter.py list
 
+interrupter_list_verbose:
+	sudo timeout 4 sudo pcsc_scan
+
 install:
 	python3 -m venv ./venv
 	venv/bin/pip install -r requirements.txt
