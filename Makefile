@@ -17,9 +17,8 @@ power_on:
 
 power_off:
 	venv/bin/python power.py reboot
-	sleep 1
+	sleep 2
 	venv/bin/python power.py power
-
 
 reboot:
 	venv/bin/python power.py reboot
