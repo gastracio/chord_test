@@ -1,3 +1,4 @@
+from testing_hardware import TestingHardware
 from smartcard.System import readers
 import time
 import sys
@@ -135,7 +136,7 @@ command_4 = [0x00, 0x66, 0x02, 0x00, 0xFF, 0x02,
              0x00, 0x00, 0x00, 0x00, 0x00]
 
 
-if sys.argv[1] == "disconnect":
+if sys.argv[1] == "all_interrupters_disconnect":
     readers_list = readers()
     print(readers_list)
 
@@ -155,38 +156,31 @@ if sys.argv[1] == "disconnect":
 
     exit(0)
 
-if sys.argv[1] == "list":
+if sys.argv[1] == "interrupters_list":
     readers_list = readers()
     print(readers_list)
 
     exit(0)
 
-r = readers()
-print(r)
-connection_1 = r[0].createConnection()
-connection_1.connect()
+pc = TestingHardware()
 
-connection_2 = r[1].createConnection()
-connection_2.connect()
+if sys.argv[1] == "reboot":
+    print("Reboot")
+    pc.reboot(0)
+    exit(0)
 
-for connection in [connection_1, connection_2]:
-    print("Connecting device")
-    # command = Cla_1 + Ins_1 + P1_1 + P2_1 + Le_1 + Data_1
-    data = connection.transmit(command_1)
-    print(data)
+if sys.argv[1] == "power_on":
+    print("Power switch")
+    pc.power_switch(0)
+    exit(0)
 
-    # command = Cla_2 + Ins_2 + P1_2 + P2_2 + Le_2 + Data_2
-    data = connection.transmit(command_2)
-    print(data)
+if sys.argv[1] == "power_off":
+    print("Reboot")
+    pc.reboot(0)
+    time.sleep(2)
+    print("Power switch")
+    pc.power_switch(0)
+    exit(0)
 
-    time.sleep(1)
 
-    print("Disconnecting device")
-    # command = Cla_3 + Ins_3 + P1_3 + P2_3 + Le_3 + Data_3
-    data = connection.transmit(command_3)
-    print(data)
 
-    # command = Cla_4 + Ins_4 + P1_4 + P2_4 + Le_4 + Data_4
-    data = connection.transmit(command_4)
-    print(data)
-    time.sleep(1)

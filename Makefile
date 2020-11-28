@@ -14,21 +14,19 @@ uninstall:
 	rm -r venv
 
 power_on:
-	venv/bin/python power.py power
+	venv/bin/python tools.py power_on
 
 power_off:
-	venv/bin/python power.py reboot
-	sleep 2
-	venv/bin/python power.py power
+	venv/bin/python tools.py power_off
 
 reboot:
-	venv/bin/python power.py reboot
+	venv/bin/python tools.py reboot
 
 dis_keys:
-	venv/bin/python interrupter.py disconnect
+	venv/bin/python tools.py all_interrupters_disconnect
 
 interrupter_list:
-	venv/bin/python interrupter.py list
+	venv/bin/python tools.py interrupters_list
 
 interrupter_list_verbose:
 	sudo timeout 4 sudo pcsc_scan
