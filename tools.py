@@ -156,6 +156,26 @@ if sys.argv[1] == "all_interrupters_disconnect":
 
     exit(0)
 
+if sys.argv[1] == "all_interrupters_connect":
+    readers_list = readers()
+    print(readers_list)
+
+    connections_list = []
+    for r in readers_list:
+        connection_dummy = r.createConnection()
+        connection_dummy.connect()
+        connections_list.append(connection_dummy)
+
+    for connection in connections_list:
+        data = connection.transmit(command_1)
+        print(data)
+
+        data = connection.transmit(command_2)
+        print(data)
+        time.sleep(1)
+
+    exit(0)
+
 if sys.argv[1] == "interrupters_list":
     readers_list = readers()
     print(readers_list)

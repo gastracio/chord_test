@@ -22,8 +22,11 @@ power_off:
 reboot:
 	venv/bin/python tools.py reboot
 
-dis_keys:
+disable_interrupters:
 	venv/bin/python tools.py all_interrupters_disconnect
+
+enable_interrupters:
+	venv/bin/python tools.py all_interrupters_connect
 
 interrupter_list:
 	venv/bin/python tools.py interrupters_list
