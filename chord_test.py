@@ -139,7 +139,6 @@ def creating_user(identifier, username, password, keyboard):
 
 
 def generating_password():
-    # TODO Генерация пароля своими силами, либо силами АМДЗ
     return "12345678"
 
 
@@ -164,6 +163,8 @@ def clear_db(keyboard):
 @pytest.mark.dependency(name="config", scope="session")
 def test_config(config, log_test_borders):
     logging.info("Начало теста конфигурационного файла")
+    # TODO: Добавить проверки на наличие всех необходимых полей в конфигурационном файле
+    # TODO: Добавить проверку на наличие идентификатора, типа TM в конфигурационном файле
     if len(config["identifiers"]) < 2:
         logging.error("В конфигурационном файле указано меньше двух идентификаторов")
         assert False
@@ -251,7 +252,7 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, clear_db, log_te
     keyboard.press("ENTER")
     system_reboot(pc)
 
-    logging.info("Аутентификация с неправильным идентификатором")
+    logging.info("Аутентификация с незарегистрированным идентификатором")
     incorrect_identifier = random.choice([id1 for id1 in identifiers_list if id1 != identifier])
     authentication(incorrect_identifier, main_admin_password, keyboard)
     system_reboot(pc)
@@ -284,21 +285,13 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, clear_db, log_te
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(depends=["chord_main_admin"])
-def test_creating_user_with_admin_id(keyboard, pc, clear_db, log_test_borders):
+def test_creating_user_with_main_admin_id(keyboard, pc, clear_db, log_test_borders):
     logging.info("Начало теста создания пользователя с идентификатором главного администратора")
 
     main_admin_id = random.choice([identifier for identifier in identifiers_list])
     main_admin_password = generating_password()
     creating_main_admin(main_admin_id, main_admin_password, keyboard)
     apply_settings(keyboard)
-    system_reboot(pc)
-
-    authentication(main_admin_id, main_admin_password, keyboard)
-    logging.info("Нажатие на кнопку \"Администрирование\"")
-    keyboard.press("TAB")
-    keyboard.press("ENTER")
-    logging.debug("Задержка 3 секунд")
-    time.sleep(3)
 
     logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
     keyboard.press("DOWN_ARROW")
@@ -314,6 +307,13 @@ def test_creating_user_with_admin_id(keyboard, pc, clear_db, log_test_borders):
     logging.info("Нажатие на кнопку \"Администрирование\"")
     keyboard.press("TAB")
     keyboard.press("ENTER")
+
+
+@pytest.mark.run(order=2)
+@pytest.mark.dependency(depends=["chord_main_admin"])
+def test_creating_admin_with_main_admin_id(keyboard, pc, clear_db, log_test_borders):
+    # TODO: Написать тест
+    pass
 
 
 def account_test(identifier: Identifier, pc: TestingHardware, is_admin, keyboard):
@@ -376,3 +376,13 @@ def test_chord_user(identifier: Identifier, keyboard, pc, clear_db, log_test_bor
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
 def test_chord_admin(identifier: Identifier, keyboard, pc, clear_db, log_test_borders):
     account_test(identifier, pc, True, keyboard)
+
+
+@pytest.mark.run(order=2)
+@pytest.mark.dependency(depends=["chord_main_admin"])
+@pytest.mark.parametrize("identifier",
+                         [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
+def test_user_group(identifier: Identifier, keyboard, pc, clear_db, log_test_borders):
+    account_test(identifier, pc, True, keyboard)
+
+
