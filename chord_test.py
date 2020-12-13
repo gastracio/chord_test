@@ -32,8 +32,15 @@ def system_reboot(pc: TestingHardware, display: Display):
     logging.info("Перезагрузка ПК")
     pc.reboot()
 
-    check_correctness_of_interrupt_catching(display)
-    common_funcs.wait_authentication_req(display)
+    res = check_correctness_of_interrupt_catching(display)
+    if res is False:
+        return False
+
+    res = common_funcs.wait_authentication_req(display)
+    if res is False:
+        return False
+
+    return True
 
 
 def apply_settings(keyboard):
@@ -44,19 +51,14 @@ def apply_settings(keyboard):
     time.sleep(1.5)
 
 
-def check_correctness_of_authentication():
-    # TODO: Сделать проверку
-    logging.debug("Задержка 5 секунд")
-    time.sleep(5)
-    """
-    :return: True of False
-    """
-    pass
+def check_correctness_of_authentication(display: Display):
+    return common_funcs.wait_for_passed_authentication(display)
 
 
-def authentication(identifier: Identifier, password, keyboard):
+def authentication(identifier: Identifier, password, keyboard, display: Display):
     """
 
+    :param display:
     :param identifier:
     :param password:
     :param keyboard:
@@ -70,10 +72,10 @@ def authentication(identifier: Identifier, password, keyboard):
     keyboard.press("ENTER")
 
     logging.info("Проверка результата аутентификации")
-    return check_correctness_of_authentication()
+    return check_correctness_of_authentication(display)
 
 
-def create_account(identifier: Identifier, password, keyboard):
+def create_account(identifier: Identifier, password, keyboard, display: Display):
     keyboard.press("TAB")
     logging.info("Нажатие кнопки \"Сменить...\" в поле \"Идентификатор\"")
     keyboard.press("SPACE")
@@ -90,6 +92,9 @@ def create_account(identifier: Identifier, password, keyboard):
 
     logging.info("Считывание идентификатора")
     identifier.attach_identifier()
+    display.snapshot()
+    time.sleep(2)
+    display.snapshot()
     # TODO Проверить корректность присваивания идентификатора (Для кейса использования идентификатора администратора)
 
     logging.info("Нажатие кнопки ОК")
@@ -111,21 +116,25 @@ def create_account(identifier: Identifier, password, keyboard):
     keyboard.press("TAB")
     keyboard.press("ENTER")
 
+    display.snapshot()
+    time.sleep(2)
+    display.snapshot()
+
     # TODO Проверка успешности создания пользователя с помощью логов АМДЗ (Для кейса создания пользователя используя
     #  идентификатор Гл.Администратора)
 
 
-def creating_main_admin(identifier, password, keyboard):
+def creating_main_admin(identifier, password, keyboard, display):
     logging.info("Переход в настройки гл. администратора")
     keyboard.press("ENTER")
     keyboard.press("DOWN_ARROW")
     keyboard.press("TAB")
 
     logging.info("Создание пользователя")
-    create_account(identifier, password, keyboard)
+    create_account(identifier, password, keyboard, display)
 
 
-def creating_user(identifier, username, password, keyboard):
+def creating_user(identifier, username, password, keyboard, display):
     logging.info("Нажатие кномки \"Создание новой учетной записи\"")
     keyboard.press("F1")
     logging.info("Ввод имени пользователя: " + username)
@@ -134,7 +143,7 @@ def creating_user(identifier, username, password, keyboard):
     keyboard.press("ENTER")
     logging.info("Переход в настройки пользователя " + username)
     keyboard.press("TAB")
-    create_account(identifier, password, keyboard)
+    create_account(identifier, password, keyboard, display)
 
 
 def generating_password():
@@ -145,7 +154,6 @@ def generating_password():
 def clear_db(keyboard):
     yield
     logging.info("Очитска базы данных")
-    # TODO: Заменить возможно, неправильную клавишу для очиски БД
     keyboard.press("F6")
     time.sleep(1)
     logging.info("Нажатие кнопки ОК")
@@ -215,7 +223,7 @@ def test_bios_interrupt_catching(pc, display, log_test_borders):
 @pytest.mark.run(order=0)
 @pytest.mark.dependency(name="bios_interrupt_catching", scope="session")
 def test_setup_in_firs_boot(pc, display, log_test_borders):
-    logging.info("Начало теста перехвата прерывания BIOS")
+    logging.info("Начало теста попадания в меню конфигурации при первой загрузке")
     res = common_funcs.wait_first_setup(display)
     if res is False:
         logging.error("Ошибка перехвата прерывания BIOS")
@@ -260,24 +268,22 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_d
     logging.info("Начало теста главного администратора Аккорда с идентификатором " + identifier.name)
 
     main_admin_password = generating_password()
-    creating_main_admin(identifier, main_admin_password, keyboard)
+    creating_main_admin(identifier, main_admin_password, keyboard, display)
     apply_settings(keyboard)
     keyboard.press("ENTER")
-    system_reboot(pc, display)
+    assert system_reboot(pc, display)
 
     logging.info("Аутентификация с незарегистрированным идентификатором")
     incorrect_identifier = random.choice([id1 for id1 in identifiers_list if id1 != identifier])
-    authentication(incorrect_identifier, main_admin_password, keyboard)
-    system_reboot(pc, display)
+    assert not authentication(incorrect_identifier, main_admin_password, keyboard, display)
+    assert system_reboot(pc, display)
 
     logging.info("Аутентификация с неправильным паролем")
-    # TODO Сделать три попытки аутентификации с детектированием события превышения попыток аутентификации
-    #  (для кейса проверки неправильных паролей)
-    authentication(identifier, main_admin_password + "F", keyboard)
-    system_reboot(pc, display)
+    assert not authentication(identifier, main_admin_password + "F", keyboard, display)
+    assert system_reboot(pc, display)
 
     logging.info("Аутентификация главного администратора")
-    authentication(identifier, main_admin_password, keyboard)
+    assert authentication(identifier, main_admin_password, keyboard, display)
 
     logging.info("Нажатие на кнопку \"Продолжить загрузку\"")
     keyboard.press("TAB")
@@ -285,15 +291,18 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_d
     keyboard.press("ENTER")
 
     logging.info("Проверка корректности загрузки ОС")
-    system_reboot(pc, display)
+    assert system_reboot(pc, display)
 
-    authentication(identifier, main_admin_password, keyboard)
+    assert authentication(identifier, main_admin_password, keyboard, display)
     logging.info("Нажатие на кнопку \"Администрирование\"")
     keyboard.press("TAB")
     keyboard.press("ENTER")
     # TODO: Сделать получение обратной связи из графического интерфейса
     logging.debug("Задержка 3 секунд")
     time.sleep(3)
+    display.snapshot()
+    time.sleep(2)
+    display.snapshot()
 
 
 @pytest.mark.run(order=2)

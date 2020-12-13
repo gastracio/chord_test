@@ -24,7 +24,7 @@ class TestingHardware:
         logging.debug("Задержка " + str(timeout) + " секунд")
         time.sleep(timeout)
 
-    def reboot(self, timeout=45):
+    def reboot(self, timeout=0):
         logging.debug("Нажатие на кнопку перезагрузки питания на АРМ")
         GPIO.output(self.__reboot_pin, GPIO.LOW)
         time.sleep(0.2)

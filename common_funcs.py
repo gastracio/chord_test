@@ -44,3 +44,17 @@ def wait_first_setup(display: Display):
 
     return False
 
+
+def wait_for_passed_authentication(display: Display):
+    logging.info("Ожидание окна контроля целостности")
+    for i in range(2):
+        res_code, match_status = display.passed_authentication()
+        if res_code != 200:
+            logging.error("Ошибка запроса снимка экрана")
+            return False
+        if match_status is True:
+            return True
+        time.sleep(1)
+
+    return False
+

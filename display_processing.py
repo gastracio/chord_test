@@ -10,9 +10,10 @@ import glob
 
 class Display:
     report_dir = "test_report_" + str(max([int(report.split('_')[-1]) for report in glob.glob("test_report_*")]))
-    _info_message_template = cv.imread('templates/info_message.jpeg', 0)
-    _authentication_template = cv.imread('templates/authentication_template.jpg', 0)
-    _interrupt_catching_template = cv.imread('templates/interrupt_catching_template.jpg', 0)
+    __info_message_template = cv.imread('templates/info_message_template.jpg', 0)
+    __authentication_template = cv.imread('templates/authentication_template.jpg', 0)
+    __passed_authentication_template = cv.imread('templates/passed_authentication_template.jpg', 0)
+    __interrupt_catching_template = cv.imread('templates/interrupt_catching_template.jpg', 0)
 
     def __init__(self):
         if os.path.isfile("config.json") is False:
@@ -32,19 +33,25 @@ class Display:
         res_code, snapshot_name = self.snapshot()
         if res_code != 200:
             return res_code, False
-        return res_code, match_template(self.report_dir + "/" + snapshot_name, self._info_message_template)
+        return res_code, match_template(self.report_dir + "/" + snapshot_name, self.__info_message_template)
 
     def authentication(self):
         res_code, snapshot_name = self.snapshot()
         if res_code != 200:
             return res_code, False
-        return res_code, match_template(self.report_dir + "/" + snapshot_name, self._authentication_template)
+        return res_code, match_template(self.report_dir + "/" + snapshot_name, self.__authentication_template)
 
     def interrupt_catching(self):
         res_code, snapshot_name = self.snapshot()
         if res_code != 200:
             return res_code, False
-        return res_code, match_template(self.report_dir + "/" + snapshot_name, self._interrupt_catching_template)
+        return res_code, match_template(self.report_dir + "/" + snapshot_name, self.__interrupt_catching_template)
+
+    def passed_authentication(self):
+        res_code, snapshot_name = self.snapshot()
+        if res_code != 200:
+            return res_code, False
+        return res_code, match_template(self.report_dir + "/" + snapshot_name, self.__passed_authentication_template)
 
 
 def match_template(image_path, template):
