@@ -6,16 +6,24 @@ import testing_hardware
 import time
 from Py_Keyboard.HID import Keyboard
 from display_processing import Display
+from common_funcs import wait_authentication_req
 
 
 @pytest.fixture(scope="session")
-def pc():
+def display():
+    display = Display()
+    yield display
+
+
+@pytest.fixture(scope="session")
+def pc(display):
     hardware = testing_hardware.TestingHardware()
     logging.info("Включение питания ПК")
     hardware.power_switch()
     # TODO Сделать обратную связь из графического интерфейса о загрузке ОС Аккорда
-    logging.debug("Задержка 15 секунд")
-    time.sleep(15)
+    wait_authentication_req(display)
+    # logging.debug("Задержка 15 секунд")
+    # time.sleep(15)
     yield hardware
     logging.info("Перезагрузка")
     hardware.reboot(0)
@@ -31,12 +39,6 @@ def pc():
 def keyboard():
     keyboard = Keyboard("/dev/hidg0")
     yield keyboard
-
-
-@pytest.fixture(scope="session")
-def display():
-    display = Display()
-    yield display
 
 
 @pytest.fixture(scope="session")

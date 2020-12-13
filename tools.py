@@ -198,7 +198,7 @@ if sys.argv[1] == "power_off":
     # TODO: Не всегда срабатывает выключение. Доработать.
     print("Reboot")
     pc.reboot(0)
-    time.sleep(2)
+    time.sleep(3)
     print("Power switch")
     pc.power_switch(0)
     exit(0)

@@ -5,9 +5,11 @@ import os
 import json
 import time
 from id_class import Identifier
+from display_processing import Display
 from testing_hardware import TestingHardware
 from smartcard.System import readers
 from Py_Keyboard.HID import Keyboard
+from common_funcs import wait_authentication_req
 
 
 # Making pytest parametrize list for all identifiers
@@ -18,10 +20,6 @@ with open('config.json') as config_file:
     identifiers_list = [Identifier(id_param) for id_param in json.load(config_file)["identifiers"]]
 
 
-def wait_authentication_req():
-    logging.info("Ожидание запроса аутентификации")
-
-
 def check_correctness_of_interrupt_catching():
     """
     :return: True or False
@@ -29,12 +27,12 @@ def check_correctness_of_interrupt_catching():
     logging.info("Проверка корректности перехвата прерывания BIOS")
 
 
-def system_reboot(pc: TestingHardware):
+def system_reboot(pc: TestingHardware, display: Display):
     logging.info("Перезагрузка ПК")
     pc.reboot()
 
     check_correctness_of_interrupt_catching()
-    wait_authentication_req()
+    wait_authentication_req(display)
 
 
 def apply_settings(keyboard):
@@ -180,7 +178,8 @@ def test_config(config, log_test_borders):
 def test_video_grabber(display, log_test_borders):
     logging.info("Начало теста устройства захвата видео")
     logging.info("Попытка сделать скриншон экрана")
-    if display.snapshot() != 200:
+    res_code, snapshot_name = display.snapshot()
+    if res_code != 200:
         logging.error("Устройство захвата видео отсоединено или работает не корректно")
         assert False
 
@@ -243,25 +242,25 @@ def test_bios_interrupt_catching(pc, log_test_borders):
                         ])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
-def test_chord_main_admin(identifier: Identifier, keyboard, pc, clear_db, log_test_borders):
+def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_db, log_test_borders):
     logging.info("Начало теста главного администратора Аккорда с идентификатором " + identifier.name)
 
     main_admin_password = generating_password()
     creating_main_admin(identifier, main_admin_password, keyboard)
     apply_settings(keyboard)
     keyboard.press("ENTER")
-    system_reboot(pc)
+    system_reboot(pc, display)
 
     logging.info("Аутентификация с незарегистрированным идентификатором")
     incorrect_identifier = random.choice([id1 for id1 in identifiers_list if id1 != identifier])
     authentication(incorrect_identifier, main_admin_password, keyboard)
-    system_reboot(pc)
+    system_reboot(pc, display)
 
     logging.info("Аутентификация с неправильным паролем")
     # TODO Сделать три попытки аутентификации с детектированием события превышения попыток аутентификации
     #  (для кейса проверки неправильных паролей)
     authentication(identifier, main_admin_password + "F", keyboard)
-    system_reboot(pc)
+    system_reboot(pc, display)
 
     logging.info("Аутентификация главного администратора")
     authentication(identifier, main_admin_password, keyboard)
@@ -272,7 +271,7 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, clear_db, log_te
     keyboard.press("ENTER")
 
     logging.info("Проверка корректности загрузки ОС")
-    system_reboot(pc)
+    system_reboot(pc, display)
 
     authentication(identifier, main_admin_password, keyboard)
     logging.info("Нажатие на кнопку \"Администрирование\"")
@@ -285,7 +284,7 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, clear_db, log_te
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(depends=["chord_main_admin"])
-def test_creating_user_with_main_admin_id(keyboard, pc, clear_db, log_test_borders):
+def test_creating_user_with_main_admin_id(keyboard, pc, display, clear_db, log_test_borders):
     logging.info("Начало теста создания пользователя с идентификатором главного администратора")
 
     main_admin_id = random.choice([identifier for identifier in identifiers_list])
@@ -301,7 +300,7 @@ def test_creating_user_with_main_admin_id(keyboard, pc, clear_db, log_test_borde
     logging.info("Попытка создать пользователя с идентификатором главного администратора")
     creating_user(main_admin_id, username, user_password, keyboard)
     # TODO Сделать проверку ошибки присваивания неправильного идентификатора
-    system_reboot(pc)
+    system_reboot(pc, display)
 
     authentication(main_admin_id, main_admin_password, keyboard)
     logging.info("Нажатие на кнопку \"Администрирование\"")

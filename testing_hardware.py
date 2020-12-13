@@ -15,7 +15,7 @@ class TestingHardware:
         GPIO.setup(self.__power_pin, GPIO.OUT)
         GPIO.output(self.__power_pin, GPIO.HIGH)
 
-    def power_switch(self, timeout=45):
+    def power_switch(self, timeout=0):
         logging.debug("Нажатие на кнопку подачи питания на АРМ")
         GPIO.output(self.__power_pin, GPIO.LOW)
         time.sleep(0.2)
