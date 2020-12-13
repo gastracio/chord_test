@@ -58,7 +58,7 @@ clean:
 run:
 	$(eval timestamp := $(shell date +%s))
 	mkdir test_report_$(timestamp)
-	sudo venv/bin/pytest --log-file=test.log --log-file=test.log
+	sudo venv/bin/pytest --log-file=test.log --html=test_report_$(timestamp)/test_report.html
 	cp test.log test_report_$(timestamp)/test.log
 
 check_hardware:
