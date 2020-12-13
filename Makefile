@@ -14,16 +14,19 @@ get_logs:
 	$(pi_user)@$(pi_ip):~/chord_test/test_report_* .
 
 install:
-#	python3 -m venv ./venv
-#	venv/bin/pip install -r requirements.txt
 #	libs for OpenCV
 	sudo apt-get update
-	sudo apt-get install -y libatlas-base-dev
-	sudo apt-get install -y libhdf5-dev
-	sudo apt-get install -y libhdf5-serial-dev
-	sudo apt-get install -y libjasper-dev
-	sudo apt-get install -y libqtgui4
-	sudo apt-get install -y libqt4-test
+	sudo apt install python3-matplotlib
+	sudo apt-get install -y libatlas-base-dev libhdf5-dev libhdf5-serial-dev libjasper-dev
+	sudo apt-get install -y libqtgui4 libqt4-test
+#	matplotlib
+	#sudo apt-get install -y tcl-dev tk-dev python-tk python3-tk
+#TODO: Install matplotlib from rep: git clone https://github.com/matplotlib/matplotlib.git
+#	Virtual Enviroment
+	python3 -m venv ./venv
+	venv/bin/pip install -r requirements.txt
+
+
 
 uninstall:
 	rm -r venv
@@ -55,7 +58,8 @@ clean:
 run:
 	$(eval timestamp := $(shell date +%s))
 	mkdir test_report_$(timestamp)
-	sudo venv/bin/pytest --log-file=test_report_$(timestamp)/test.log
+	sudo venv/bin/pytest --log-file=test.log --log-file=test.log
+	cp test.log test_report_$(timestamp)/test.log
 
 check_hardware:
 	# TODO: Make pytest hardware test run

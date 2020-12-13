@@ -20,16 +20,14 @@ def pc(display):
     hardware = testing_hardware.TestingHardware()
     logging.info("Включение питания ПК")
     hardware.power_switch()
-    # TODO Сделать обратную связь из графического интерфейса о загрузке ОС Аккорда
-    wait_authentication_req(display)
-    # logging.debug("Задержка 15 секунд")
-    # time.sleep(15)
+
     yield hardware
+
     logging.info("Перезагрузка")
     hardware.reboot(0)
 
-    logging.debug("Задержка 2 секунды")
-    time.sleep(2)
+    logging.debug("Задержка 3 секунды")
+    time.sleep(3)
 
     logging.info("Выключение питания")
     hardware.power_switch(0)

@@ -10,8 +10,9 @@ import glob
 
 class Display:
     report_dir = "test_report_" + str(max([int(report.split('_')[-1]) for report in glob.glob("test_report_*")]))
-    info_message_template = cv.imread('templates/info_message.jpeg', 0)
-    authentication_template = cv.imread('templates/authentication_template.jpg', 0)
+    _info_message_template = cv.imread('templates/info_message.jpeg', 0)
+    _authentication_template = cv.imread('templates/authentication_template.jpg', 0)
+    _interrupt_catching_template = cv.imread('templates/interrupt_catching_template.jpg', 0)
 
     def __init__(self):
         if os.path.isfile("config.json") is False:
@@ -31,13 +32,19 @@ class Display:
         res_code, snapshot_name = self.snapshot()
         if res_code != 200:
             return res_code, False
-        return res_code, match_template(self.report_dir + "/" + snapshot_name, self.info_message_template)
+        return res_code, match_template(self.report_dir + "/" + snapshot_name, self._info_message_template)
 
     def authentication(self):
         res_code, snapshot_name = self.snapshot()
         if res_code != 200:
             return res_code, False
-        return res_code, match_template(self.report_dir + "/" + snapshot_name, self.authentication_template)
+        return res_code, match_template(self.report_dir + "/" + snapshot_name, self._authentication_template)
+
+    def interrupt_catching(self):
+        res_code, snapshot_name = self.snapshot()
+        if res_code != 200:
+            return res_code, False
+        return res_code, match_template(self.report_dir + "/" + snapshot_name, self._interrupt_catching_template)
 
 
 def match_template(image_path, template):
@@ -50,7 +57,8 @@ def match_template(image_path, template):
     # Apply template Matching
     res = cv.matchTemplate(img, template, method)
     min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-    logging.debug(str(min_val) + " " + str(max_val) + " " + str(min_loc) + " " + str(max_loc))
+    logging.debug("min_val: " + str(min_val) + " max_val: " + str(max_val))
+    logging.debug("")
     # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
     if max_val > 0.7:
         if method in [cv.TM_SQDIFF, cv.TM_SQDIFF_NORMED]:
@@ -58,7 +66,7 @@ def match_template(image_path, template):
         else:
             top_left = max_loc
         bottom_right = (top_left[0] + w, top_left[1] + h)
-        cv.rectangle(img, top_left, bottom_right, 255, 2)
+        cv.rectangle(img, top_left, bottom_right, (255, 0, 0), 2)
 
     fig, ax = plt.subplots(figsize=(20, 10))
     plt.axis("off")
@@ -66,6 +74,6 @@ def match_template(image_path, template):
     plt.draw()
     plt.pause(0.05)
 
-    if max_val > 0.7:
+    if max_val > 0.9:
         return True
     return False

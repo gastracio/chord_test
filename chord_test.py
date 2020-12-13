@@ -9,7 +9,7 @@ from display_processing import Display
 from testing_hardware import TestingHardware
 from smartcard.System import readers
 from Py_Keyboard.HID import Keyboard
-from common_funcs import wait_authentication_req
+import common_funcs
 
 
 # Making pytest parametrize list for all identifiers
@@ -20,19 +20,20 @@ with open('config.json') as config_file:
     identifiers_list = [Identifier(id_param) for id_param in json.load(config_file)["identifiers"]]
 
 
-def check_correctness_of_interrupt_catching():
+def check_correctness_of_interrupt_catching(display: Display):
     """
     :return: True or False
     """
     logging.info("Проверка корректности перехвата прерывания BIOS")
+    return common_funcs.waiting_interrupt_catching(display)
 
 
 def system_reboot(pc: TestingHardware, display: Display):
     logging.info("Перезагрузка ПК")
     pc.reboot()
 
-    check_correctness_of_interrupt_catching()
-    wait_authentication_req(display)
+    check_correctness_of_interrupt_catching(display)
+    common_funcs.wait_authentication_req(display)
 
 
 def apply_settings(keyboard):
@@ -202,7 +203,31 @@ def test_interrupters(log_test_borders):
 
 
 @pytest.mark.run(order=0)
-@pytest.mark.dependency(name="keyboard_connecting", scope="session")
+@pytest.mark.dependency(name="bios_interrupt_catching", scope="session")
+def test_bios_interrupt_catching(pc, display, log_test_borders):
+    logging.info("Начало теста перехвата прерывания BIOS")
+    res = check_correctness_of_interrupt_catching(display)
+    if res is False:
+        logging.error("Ошибка перехвата прерывания BIOS")
+        assert False
+
+
+@pytest.mark.run(order=0)
+@pytest.mark.dependency(name="bios_interrupt_catching", scope="session")
+def test_setup_in_firs_boot(pc, display, log_test_borders):
+    logging.info("Начало теста перехвата прерывания BIOS")
+    res = common_funcs.wait_first_setup(display)
+    if res is False:
+        logging.error("Ошибка перехвата прерывания BIOS")
+        assert False
+
+
+@pytest.mark.run(order=0)
+@pytest.mark.dependency(name="keyboard_connecting",
+                        scope="session",
+                        depends=[
+                            "bios_interrupt_catching"
+                        ])
 def test_keyboard_connecting(pc, log_test_borders):
     logging.info("Начало теста проверки соединения для эмуляции клавиатуры")
     error_fl = False
@@ -219,25 +244,14 @@ def test_keyboard_connecting(pc, log_test_borders):
         assert False
 
 
-@pytest.mark.run(order=0)
-@pytest.mark.dependency(name="bios_interrupt_catching",
-                        scope="session",
-                        depends=[
-                            "video_grabber",
-                            "keyboard_connecting",
-                            "interrupter",
-                            "config"
-                        ])
-def test_bios_interrupt_catching(pc, log_test_borders):
-    logging.info("Начало теста перехвата прерывания BIOS")
-    check_correctness_of_interrupt_catching()
-
-
 @pytest.mark.run(order=1)
 @pytest.mark.dependency(name="chord_main_admin",
                         scope="session",
                         depends=[
                             "bios_interrupt_catching",
+                            "keyboard_connecting",
+                            "video_grabber",
+                            "interrupter",
                             "config"
                         ])
 @pytest.mark.parametrize("identifier",
