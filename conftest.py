@@ -6,7 +6,7 @@ import testing_hardware
 import time
 from Py_Keyboard.HID import Keyboard
 from display_processing import Display
-from common_funcs import wait_authentication_req
+from common_funcs import waiting_authentication_req
 
 
 @pytest.fixture(scope="session")

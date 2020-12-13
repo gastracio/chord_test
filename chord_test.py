@@ -11,7 +11,7 @@ from smartcard.System import readers
 from Py_Keyboard.HID import Keyboard
 import common_funcs
 
-
+# TODO: Сделать выполнение этого кода после прохождения теста на конфигурационный файл
 # Making pytest parametrize list for all identifiers
 if os.path.isfile("config.json") is False:
     logging.error("Файла config.json не существует")
@@ -36,7 +36,7 @@ def system_reboot(pc: TestingHardware, display: Display):
     if res is False:
         return False
 
-    res = common_funcs.wait_authentication_req(display)
+    res = common_funcs.waiting_authentication_req(display)
     if res is False:
         return False
 
@@ -52,7 +52,7 @@ def apply_settings(keyboard):
 
 
 def check_correctness_of_authentication(display: Display):
-    return common_funcs.wait_for_passed_authentication(display)
+    return common_funcs.waiting_for_passed_authentication(display)
 
 
 def authentication(identifier: Identifier, password, keyboard, display: Display):
@@ -168,7 +168,7 @@ def clear_db(keyboard, display):
     if res is False:
         assert False
 
-    res = common_funcs.wait_authentication_req(display)
+    res = common_funcs.waiting_authentication_req(display)
     if res is False:
         assert False
 
@@ -231,7 +231,7 @@ def test_bios_interrupt_catching(pc, display, log_test_borders):
 @pytest.mark.dependency(name="bios_interrupt_catching", scope="session")
 def test_setup_in_firs_boot(pc, display, log_test_borders):
     logging.info("Начало теста попадания в меню конфигурации при первой загрузке")
-    res = common_funcs.wait_first_setup(display)
+    res = common_funcs.waiting_first_setup(display)
     if res is False:
         logging.error("Ошибка перехвата прерывания BIOS")
         assert False

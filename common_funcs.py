@@ -17,7 +17,7 @@ def waiting_interrupt_catching(display: Display):
     return False
 
 
-def wait_authentication_req(display: Display):
+def waiting_authentication_req(display: Display):
     logging.info("Ожидание запроса аутентификации")
     for i in range(40):
         res_code, match_status = display.authentication()
@@ -31,7 +31,7 @@ def wait_authentication_req(display: Display):
     return False
 
 
-def wait_first_setup(display: Display):
+def waiting_first_setup(display: Display):
     logging.info("Ожидание загрузки меню первичной настройки")
     for i in range(40):
         res_code, match_status = display.info_message()
@@ -45,7 +45,7 @@ def wait_first_setup(display: Display):
     return False
 
 
-def wait_for_passed_authentication(display: Display):
+def waiting_for_passed_authentication(display: Display):
     logging.info("Ожидание окна контроля целостности")
     for i in range(2):
         res_code, match_status = display.passed_authentication()
