@@ -151,7 +151,8 @@ def generating_password():
 
 
 @pytest.fixture()
-def clear_db(keyboard):
+def clear_db(keyboard, display):
+    # TODO: Перенести эту фикстуру в conftes.py
     yield
     logging.info("Очитска базы данных")
     keyboard.press("F6")
@@ -161,9 +162,15 @@ def clear_db(keyboard):
     time.sleep(1)
     logging.info("Нажатие кнопки ОК")
     keyboard.press("ENTER")
-    logging.debug("Задержка 60 секунд")
-    time.sleep(60)
-    check_correctness_of_interrupt_catching()
+
+    # TODO: Вынести это в отдельную функцию вместе с system_reboot
+    res = check_correctness_of_interrupt_catching(display)
+    if res is False:
+        assert False
+
+    res = common_funcs.wait_authentication_req(display)
+    if res is False:
+        assert False
 
 
 @pytest.mark.run(order=0)
