@@ -52,6 +52,7 @@ def apply_settings(keyboard):
 
 
 def check_correctness_of_authentication(display: Display):
+    # TODO: Сделать корректную обработку ошибки
     return common_funcs.waiting_for_passed_authentication(display)
 
 
@@ -91,15 +92,27 @@ def create_account(identifier: Identifier, password, keyboard, display: Display)
     keyboard.press("ENTER")
 
     logging.info("Считывание идентификатора")
+
     identifier.attach_identifier()
-    display.snapshot()
-    time.sleep(2)
-    display.snapshot()
-    # TODO Проверить корректность присваивания идентификатора (Для кейса использования идентификатора администратора)
+    try:
+        logging.info("Проверка на наличиее сообщений об ошибке")
+        if display.message() is True:
+            return False
+    except Exception as e:
+        logging.error(e)
+        return False
 
     logging.info("Нажатие кнопки ОК")
     keyboard.press("ENTER")
     keyboard.press("TAB")
+
+    try:
+        logging.info("Проверка на корректный выход в меню администрирования")
+        if display.admin_interface() is False:
+            return False
+    except Exception as e:
+        logging.error(e)
+        return False
 
     logging.info("Нажатие кнопки \"Сменить...\" в поле \"Пароль\"")
     keyboard.press("SPACE")
@@ -116,12 +129,13 @@ def create_account(identifier: Identifier, password, keyboard, display: Display)
     keyboard.press("TAB")
     keyboard.press("ENTER")
 
-    display.snapshot()
-    time.sleep(2)
-    display.snapshot()
-
-    # TODO Проверка успешности создания пользователя с помощью логов АМДЗ (Для кейса создания пользователя используя
-    #  идентификатор Гл.Администратора)
+    try:
+        logging.info("Проверка на корректный выход в меню администрирования")
+        if display.admin_interface() is False:
+            return False
+    except Exception as e:
+        logging.error(e)
+        return False
 
 
 def creating_main_admin(identifier, password, keyboard, display):
@@ -168,7 +182,7 @@ def clear_db(keyboard, display):
     if res is False:
         assert False
 
-    res = common_funcs.waiting_authentication_req(display)
+    res = common_funcs.waiting_first_setup(display)
     if res is False:
         assert False
 
@@ -194,9 +208,11 @@ def test_config(config, log_test_borders):
 def test_video_grabber(display, log_test_borders):
     logging.info("Начало теста устройства захвата видео")
     logging.info("Попытка сделать скриншон экрана")
-    res_code, snapshot_name = display.snapshot()
-    if res_code != 200:
+    try:
+        display.snapshot()
+    except Exception as e:
         logging.error("Устройство захвата видео отсоединено или работает не корректно")
+        logging.error(e)
         assert False
 
 
@@ -229,7 +245,7 @@ def test_bios_interrupt_catching(pc, display, log_test_borders):
 
 @pytest.mark.run(order=0)
 @pytest.mark.dependency(name="bios_interrupt_catching", scope="session")
-def test_setup_in_firs_boot(pc, display, log_test_borders):
+def test_setup_in_first_boot(pc, display, log_test_borders):
     logging.info("Начало теста попадания в меню конфигурации при первой загрузке")
     res = common_funcs.waiting_first_setup(display)
     if res is False:
@@ -304,12 +320,12 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_d
     logging.info("Нажатие на кнопку \"Администрирование\"")
     keyboard.press("TAB")
     keyboard.press("ENTER")
-    # TODO: Сделать получение обратной связи из графического интерфейса
-    logging.debug("Задержка 3 секунд")
-    time.sleep(3)
-    display.snapshot()
-    time.sleep(2)
-    display.snapshot()
+
+    try:
+        common_funcs.waiting_for_admin_interface(display)
+    except Exception as e:
+        logging.error(e)
+        assert False
 
 
 @pytest.mark.run(order=2)

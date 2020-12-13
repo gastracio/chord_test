@@ -14,6 +14,8 @@ class Display:
     __authentication_template = cv.imread('templates/authentication_template.jpg', 0)
     __passed_authentication_template = cv.imread('templates/passed_authentication_template.jpg', 0)
     __interrupt_catching_template = cv.imread('templates/interrupt_catching_template.jpg', 0)
+    __message_template = cv.imread('templates/message_template.jpg', 0)
+    __admin_interface_template = cv.imread('templates/admin_interface_template.jpg', 0)
 
     def __init__(self):
         if os.path.isfile("config.json") is False:
@@ -24,34 +26,36 @@ class Display:
 
     def snapshot(self):
         res = requests.get(self.__img_url, allow_redirects=True, timeout=1)
+        if res.status_code != 200:
+            assert False
         snapshot_name = 'snapshot_' + datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f") + '.jpg'
         logging.debug(snapshot_name)
         open(self.report_dir + "/" + snapshot_name, 'wb').write(res.content)
-        return res.status_code, snapshot_name
+        return snapshot_name
 
     def info_message(self):
-        res_code, snapshot_name = self.snapshot()
-        if res_code != 200:
-            return res_code, False
-        return res_code, match_template(self.report_dir + "/" + snapshot_name, self.__info_message_template)
+        snapshot_name = self.snapshot()
+        return match_template(self.report_dir + "/" + snapshot_name, self.__info_message_template)
 
     def authentication(self):
-        res_code, snapshot_name = self.snapshot()
-        if res_code != 200:
-            return res_code, False
-        return res_code, match_template(self.report_dir + "/" + snapshot_name, self.__authentication_template)
+        snapshot_name = self.snapshot()
+        return match_template(self.report_dir + "/" + snapshot_name, self.__authentication_template)
 
     def interrupt_catching(self):
-        res_code, snapshot_name = self.snapshot()
-        if res_code != 200:
-            return res_code, False
-        return res_code, match_template(self.report_dir + "/" + snapshot_name, self.__interrupt_catching_template)
+        snapshot_name = self.snapshot()
+        return match_template(self.report_dir + "/" + snapshot_name, self.__interrupt_catching_template)
 
     def passed_authentication(self):
-        res_code, snapshot_name = self.snapshot()
-        if res_code != 200:
-            return res_code, False
-        return res_code, match_template(self.report_dir + "/" + snapshot_name, self.__passed_authentication_template)
+        snapshot_name = self.snapshot()
+        return match_template(self.report_dir + "/" + snapshot_name, self.__passed_authentication_template)
+
+    def message(self):
+        snapshot_name = self.snapshot()
+        return match_template(self.report_dir + "/" + snapshot_name, self.__message_template)
+
+    def admin_interface(self):
+        snapshot_name = self.snapshot()
+        return match_template(self.report_dir + "/" + snapshot_name, self.__admin_interface_template)
 
 
 def match_template(image_path, template):
