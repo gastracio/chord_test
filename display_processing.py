@@ -85,6 +85,7 @@ def match_template(image_path, template):
     plt.draw()
     plt.pause(0.05)
 
+    # TODO: Взять цифру из конфигурационного файла
     if max_val > 0.9:
         return True
     return False
