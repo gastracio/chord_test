@@ -5,12 +5,14 @@ import requests
 import cv2 as cv
 from matplotlib import pyplot as plt
 from datetime import datetime
+from common_funcs import get_test_report_dir
 import glob
 import numpy as np
+import time
 
 
 class Display:
-    report_dir = "test_report_" + str(max([int(report.split('_')[-1]) for report in glob.glob("test_report_*")]))
+    report_dir = get_test_report_dir()
     __info_message_template = cv.imread('templates/info_message_template.jpg', 0)
     __authentication_template = cv.imread('templates/authentication_template.jpg', 0)
     __passed_authentication_template = cv.imread('templates/passed_authentication_template.jpg', 0)
@@ -43,30 +45,6 @@ class Display:
         open(self.report_dir + "/" + snapshot_name, 'wb').write(res.content)
         return snapshot_name
 
-    def info_message(self):
-        snapshot_name = self.snapshot()
-        return self.match_template(self.report_dir + "/" + snapshot_name, self.__info_message_template)
-
-    def authentication(self):
-        snapshot_name = self.snapshot()
-        return self.match_template(self.report_dir + "/" + snapshot_name, self.__authentication_template)
-
-    def interrupt_catching(self):
-        snapshot_name = self.snapshot()
-        return self.match_template(self.report_dir + "/" + snapshot_name, self.__interrupt_catching_template)
-
-    def passed_authentication(self):
-        snapshot_name = self.snapshot()
-        return self.match_template(self.report_dir + "/" + snapshot_name, self.__passed_authentication_template)
-
-    def message(self):
-        snapshot_name = self.snapshot()
-        return self.match_template(self.report_dir + "/" + snapshot_name, self.__message_template)
-
-    def admin_interface(self):
-        snapshot_name = self.snapshot()
-        return self.match_template(self.report_dir + "/" + snapshot_name, self.__admin_interface_template)
-
     def match_template(self, image_path, template):
         img = cv.imread(image_path, 0)
         img2 = img.copy()
@@ -95,4 +73,68 @@ class Display:
         # TODO: Взять цифру из конфигурационного файла
         if max_val > 0.9:
             return True
+        return False
+
+    def info_message(self):
+        snapshot_name = self.snapshot()
+        return self.match_template(self.report_dir + "/" + snapshot_name, self.__info_message_template)
+
+    def authentication(self):
+        snapshot_name = self.snapshot()
+        return self.match_template(self.report_dir + "/" + snapshot_name, self.__authentication_template)
+
+    def interrupt_catching(self):
+        snapshot_name = self.snapshot()
+        return self.match_template(self.report_dir + "/" + snapshot_name, self.__interrupt_catching_template)
+
+    def passed_authentication(self):
+        snapshot_name = self.snapshot()
+        return self.match_template(self.report_dir + "/" + snapshot_name, self.__passed_authentication_template)
+
+    def message(self):
+        snapshot_name = self.snapshot()
+        return self.match_template(self.report_dir + "/" + snapshot_name, self.__message_template)
+
+    def admin_interface(self):
+        snapshot_name = self.snapshot()
+        return self.match_template(self.report_dir + "/" + snapshot_name, self.__admin_interface_template)
+
+    def waiting_interrupt_catching(self):
+        logging.info("Ожидание перехвата прерывания BIOS")
+        for i in range(20):
+            if self.interrupt_catching() is True:
+                return True
+            time.sleep(3)
+        return False
+
+    def waiting_authentication_req(self):
+        logging.info("Ожидание запроса аутентификации")
+        for i in range(40):
+            if self.authentication() is True:
+                return True
+            time.sleep(3)
+        return False
+
+    def waiting_first_setup(self):
+        logging.info("Ожидание загрузки меню первичной настройки")
+        for i in range(40):
+            if self.info_message() is True:
+                return True
+            time.sleep(3)
+        return False
+
+    def waiting_for_passed_authentication(self):
+        logging.info("Ожидание окна контроля целостности")
+        for i in range(2):
+            if self.passed_authentication() is True:
+                return True
+            time.sleep(1)
+        return False
+
+    def waiting_for_admin_interface(self):
+        logging.info("Ожидание интерфейса администрирования без лишних окон")
+        for i in range(2):
+            if self.admin_interface() is True:
+                return True
+            time.sleep(2)
         return False

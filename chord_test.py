@@ -25,7 +25,7 @@ def check_correctness_of_interrupt_catching(display: Display):
     :return: True or False
     """
     logging.info("Проверка корректности перехвата прерывания BIOS")
-    return common_funcs.waiting_interrupt_catching(display)
+    return display.waiting_interrupt_catching()
 
 
 def system_reboot(pc: TestingHardware, display: Display):
@@ -36,7 +36,7 @@ def system_reboot(pc: TestingHardware, display: Display):
     if res is False:
         return False
 
-    res = common_funcs.waiting_authentication_req(display)
+    res = display.waiting_authentication_req()
     if res is False:
         return False
 
@@ -53,7 +53,7 @@ def apply_settings(keyboard):
 
 def check_correctness_of_authentication(display: Display):
     # TODO: Сделать корректную обработку ошибки
-    return common_funcs.waiting_for_passed_authentication(display)
+    return display.waiting_for_passed_authentication()
 
 
 def authentication(identifier: Identifier, password, keyboard, display: Display):
@@ -182,7 +182,7 @@ def clear_db(keyboard, display):
     if res is False:
         assert False
 
-    res = common_funcs.waiting_first_setup(display)
+    res = display.waiting_first_setup()
     if res is False:
         assert False
 
@@ -247,7 +247,7 @@ def test_bios_interrupt_catching(pc, display, log_test_borders):
 @pytest.mark.dependency(name="bios_interrupt_catching", scope="session")
 def test_setup_in_first_boot(pc, display, log_test_borders):
     logging.info("Начало теста попадания в меню конфигурации при первой загрузке")
-    res = common_funcs.waiting_first_setup(display)
+    res = display.waiting_first_setup()
     if res is False:
         logging.error("Ошибка перехвата прерывания BIOS")
         assert False
@@ -322,7 +322,7 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_d
     keyboard.press("ENTER")
 
     try:
-        common_funcs.waiting_for_admin_interface(display)
+        display.waiting_for_admin_interface()
     except Exception as e:
         logging.error(e)
         assert False

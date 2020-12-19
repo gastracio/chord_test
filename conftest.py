@@ -6,7 +6,24 @@ import testing_hardware
 import time
 from Py_Keyboard.HID import Keyboard
 from display_processing import Display
-from common_funcs import waiting_authentication_req
+from common_funcs import get_test_report_dir
+import subprocess
+import signal
+
+
+@pytest.fixture(scope="session", autouse=True)
+def test_log():
+    test_report_dir = get_test_report_dir()
+    command = [
+        './tail_logs.sh',
+        test_report_dir
+    ]
+
+    p = subprocess.Popen(command)
+
+    yield
+
+    os.killpg(os.getpgid(p.pid), signal.SIGTERM)
 
 
 @pytest.fixture(scope="session")
@@ -48,8 +65,9 @@ def config():
         yield json.load(config_file)
 
 
-@pytest.fixture()
+@pytest.fixture(autouse=True)
 def log_test_borders():
+    # TODO: Удалить все вызовы фикстуры в тестах
     logging.info("################################## НАЧАЛО ТЕСТА ##################################")
     yield
     logging.info("################################## КОНЕЦ ТЕСТА ###################################")
