@@ -1,7 +1,6 @@
 #!/bin/dash
 pi_user=pi
 pi_ip=192.168.0.5
-test_report_dir_name=test_report_$(date +%s)
 
 all: deploy
 
@@ -54,10 +53,7 @@ clean:
 	sudo rm -rf .idea .pytest_cache __pycache__ test_report_*
 
 run:
-	$(eval timestamp := $(shell date +%s))
-	mkdir test_report_$(timestamp)
-	sudo venv/bin/pytest --log-file=test.log --html=test_report_$(timestamp)/test_report.html
-	cp test.log test_report_$(timestamp)/test.log
+	./run_tests.sh
 
 check_hardware:
 	# TODO: Make pytest hardware test run
