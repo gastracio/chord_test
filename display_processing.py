@@ -6,6 +6,7 @@ import cv2 as cv
 from matplotlib import pyplot as plt
 from datetime import datetime
 import glob
+import numpy as np
 
 
 class Display:
@@ -24,6 +25,15 @@ class Display:
         with open('config.json') as config_file:
             self.__img_url = json.load(config_file)["display_snapshot_url"]
 
+        fig, ax = plt.subplots(figsize=(8, 9), dpi=125)
+        plt.get_current_fig_manager().window.wm_geometry("+923+35")
+        plt.axis("off")
+        fig.subplots_adjust(0.010, 0.010, 0.990, 0.990)
+        data = np.zeros((1080, 1920))
+        self.image_plt = ax.imshow(data)
+        # plt.draw()
+        # plt.pause(0.05)
+
     def snapshot(self):
         res = requests.get(self.__img_url, allow_redirects=True, timeout=1)
         if res.status_code != 200:
@@ -35,57 +45,54 @@ class Display:
 
     def info_message(self):
         snapshot_name = self.snapshot()
-        return match_template(self.report_dir + "/" + snapshot_name, self.__info_message_template)
+        return self.match_template(self.report_dir + "/" + snapshot_name, self.__info_message_template)
 
     def authentication(self):
         snapshot_name = self.snapshot()
-        return match_template(self.report_dir + "/" + snapshot_name, self.__authentication_template)
+        return self.match_template(self.report_dir + "/" + snapshot_name, self.__authentication_template)
 
     def interrupt_catching(self):
         snapshot_name = self.snapshot()
-        return match_template(self.report_dir + "/" + snapshot_name, self.__interrupt_catching_template)
+        return self.match_template(self.report_dir + "/" + snapshot_name, self.__interrupt_catching_template)
 
     def passed_authentication(self):
         snapshot_name = self.snapshot()
-        return match_template(self.report_dir + "/" + snapshot_name, self.__passed_authentication_template)
+        return self.match_template(self.report_dir + "/" + snapshot_name, self.__passed_authentication_template)
 
     def message(self):
         snapshot_name = self.snapshot()
-        return match_template(self.report_dir + "/" + snapshot_name, self.__message_template)
+        return self.match_template(self.report_dir + "/" + snapshot_name, self.__message_template)
 
     def admin_interface(self):
         snapshot_name = self.snapshot()
-        return match_template(self.report_dir + "/" + snapshot_name, self.__admin_interface_template)
+        return self.match_template(self.report_dir + "/" + snapshot_name, self.__admin_interface_template)
 
+    def match_template(self, image_path, template):
+        img = cv.imread(image_path, 0)
+        img2 = img.copy()
+        w, h = template.shape[::-1]
 
-def match_template(image_path, template):
-    img = cv.imread(image_path, 0)
-    img2 = img.copy()
-    w, h = template.shape[::-1]
+        img = img2.copy()
+        method = eval('cv.TM_CCOEFF_NORMED')
+        # Apply template Matching
+        res = cv.matchTemplate(img, template, method)
+        min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
+        logging.debug("min_val: " + str(min_val) + " max_val: " + str(max_val))
+        logging.debug("")
+        # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
+        if max_val > 0.7:
+            if method in [cv.TM_SQDIFF, cv.TM_SQDIFF_NORMED]:
+                top_left = min_loc
+            else:
+                top_left = max_loc
+            bottom_right = (top_left[0] + w, top_left[1] + h)
+            cv.rectangle(img, top_left, bottom_right, (255, 0, 0), 2)
 
-    img = img2.copy()
-    method = eval('cv.TM_CCOEFF_NORMED')
-    # Apply template Matching
-    res = cv.matchTemplate(img, template, method)
-    min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-    logging.debug("min_val: " + str(min_val) + " max_val: " + str(max_val))
-    logging.debug("")
-    # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
-    if max_val > 0.7:
-        if method in [cv.TM_SQDIFF, cv.TM_SQDIFF_NORMED]:
-            top_left = min_loc
-        else:
-            top_left = max_loc
-        bottom_right = (top_left[0] + w, top_left[1] + h)
-        cv.rectangle(img, top_left, bottom_right, (255, 0, 0), 2)
+        self.image_plt.set_data(cv.cvtColor(img, cv.COLOR_BGR2RGB))
+        plt.draw()
+        plt.pause(0.05)
 
-    fig, ax = plt.subplots(figsize=(20, 10))
-    plt.axis("off")
-    axim = ax.imshow(cv.cvtColor(img, cv.COLOR_BGR2RGB))
-    plt.draw()
-    plt.pause(0.05)
-
-    # TODO: Взять цифру из конфигурационного файла
-    if max_val > 0.9:
-        return True
-    return False
+        # TODO: Взять цифру из конфигурационного файла
+        if max_val > 0.9:
+            return True
+        return False
