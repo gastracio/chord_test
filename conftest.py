@@ -23,7 +23,8 @@ def test_log():
 
     yield
 
-    os.killpg(os.getpgid(p.pid), signal.SIGTERM)
+    subprocess.Popen.terminate(p)
+    # os.killpg(os.getpgid(p.pid), signal.SIGTERM)
 
 
 @pytest.fixture(scope="session")
