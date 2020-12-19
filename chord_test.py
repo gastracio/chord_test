@@ -95,7 +95,7 @@ def create_account(identifier: Identifier, password, keyboard, display: Display)
 
     identifier.attach_identifier()
     try:
-        logging.info("Проверка на наличиее сообщений об ошибке")
+        logging.info("Проверка на наличие сообщений об ошибке")
         if display.message() is True:
             return False
     except Exception as e:
@@ -109,6 +109,7 @@ def create_account(identifier: Identifier, password, keyboard, display: Display)
     try:
         logging.info("Проверка на корректный выход в меню администрирования")
         if display.admin_interface() is False:
+            # TODO: Написать ошибку в логи
             return False
     except Exception as e:
         logging.error(e)
@@ -137,6 +138,8 @@ def create_account(identifier: Identifier, password, keyboard, display: Display)
         logging.error(e)
         return False
 
+    return True
+
 
 def creating_main_admin(identifier, password, keyboard, display):
     logging.info("Переход в настройки гл. администратора")
@@ -145,7 +148,7 @@ def creating_main_admin(identifier, password, keyboard, display):
     keyboard.press("TAB")
 
     logging.info("Создание пользователя")
-    create_account(identifier, password, keyboard, display)
+    return create_account(identifier, password, keyboard, display)
 
 
 def creating_user(identifier, username, password, keyboard, display):
@@ -157,7 +160,7 @@ def creating_user(identifier, username, password, keyboard, display):
     keyboard.press("ENTER")
     logging.info("Переход в настройки пользователя " + username)
     keyboard.press("TAB")
-    create_account(identifier, password, keyboard, display)
+    return create_account(identifier, password, keyboard, display)
 
 
 def generating_password():
@@ -291,7 +294,7 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_d
     logging.info("Начало теста главного администратора Аккорда с идентификатором " + identifier.name)
 
     main_admin_password = generating_password()
-    creating_main_admin(identifier, main_admin_password, keyboard, display)
+    assert creating_main_admin(identifier, main_admin_password, keyboard, display)
     apply_settings(keyboard)
     keyboard.press("ENTER")
     assert system_reboot(pc, display)
@@ -335,7 +338,7 @@ def test_creating_user_with_main_admin_id(keyboard, pc, display, clear_db):
 
     main_admin_id = random.choice([identifier for identifier in identifiers_list])
     main_admin_password = generating_password()
-    creating_main_admin(main_admin_id, main_admin_password, keyboard)
+    assert creating_main_admin(main_admin_id, main_admin_password, keyboard, display)
     apply_settings(keyboard)
 
     logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
@@ -344,11 +347,11 @@ def test_creating_user_with_main_admin_id(keyboard, pc, display, clear_db):
     username = "User"
     user_password = generating_password()
     logging.info("Попытка создать пользователя с идентификатором главного администратора")
-    creating_user(main_admin_id, username, user_password, keyboard)
+    assert not creating_user(main_admin_id, username, user_password, keyboard, display)
     # TODO Сделать проверку ошибки присваивания неправильного идентификатора
-    system_reboot(pc, display)
+    assert system_reboot(pc, display)
 
-    authentication(main_admin_id, main_admin_password, keyboard)
+    assert authentication(main_admin_id, main_admin_password, keyboard, display)
     logging.info("Нажатие на кнопку \"Администрирование\"")
     keyboard.press("TAB")
     keyboard.press("ENTER")
@@ -361,7 +364,7 @@ def test_creating_admin_with_main_admin_id(keyboard, pc, clear_db):
     pass
 
 
-def account_test(identifier: Identifier, pc: TestingHardware, is_admin, keyboard):
+def account_test(identifier: Identifier, pc: TestingHardware, is_admin, keyboard, display: Display):
     if is_admin:
         logging.info("Начало теста администратора Аккорда с идентификатором " + identifier.name)
     else:
@@ -369,7 +372,7 @@ def account_test(identifier: Identifier, pc: TestingHardware, is_admin, keyboard
 
     main_admin_id = random.choice([id1 for id1 in identifiers_list if id1 != identifier])
     main_admin_password = generating_password()
-    creating_main_admin(main_admin_id, main_admin_password, keyboard)
+    creating_main_admin(main_admin_id, main_admin_password, keyboard, display)
     if is_admin:
         logging.info("Выбор группы \"Администраторы\" в дереве учетных записей")
         account_name = "Admin"
@@ -379,29 +382,29 @@ def account_test(identifier: Identifier, pc: TestingHardware, is_admin, keyboard
         keyboard.press("DOWN_ARROW")
         account_name = "User"
     account_password = generating_password()
-    creating_user(identifier, account_name, account_password, keyboard)
+    creating_user(identifier, account_name, account_password, keyboard, display)
     apply_settings(keyboard)
-    system_reboot(pc)
+    system_reboot(pc, display)
 
     logging.info("Аутентификация с неправильным паролем")
     # TODO Делать аутентификацию до тех пор, пока не закроется доступ до администрирования (для кейса с неправильным
     #  паролем)
-    authentication(identifier, account_password + "F", keyboard)
-    system_reboot(pc)
+    authentication(identifier, account_password + "F", keyboard, display)
+    system_reboot(pc, display)
 
     if is_admin:
         logging.info("Аутентификация администратора")
     else:
         logging.info("Аутентификация пользователя")
-    authentication(identifier, account_password, keyboard)
+    authentication(identifier, account_password, keyboard, display)
     logging.info("Нажатие на кнопку \"Продолжить загрузку\"")
     keyboard.press("TAB")
     keyboard.press("TAB")
     keyboard.press("ENTER")
     logging.info("Проверка корректности загрузки ОС")
-    system_reboot(pc)
+    system_reboot(pc, display)
 
-    authentication(main_admin_id, main_admin_password, keyboard)
+    authentication(main_admin_id, main_admin_password, keyboard, display)
     logging.info("Нажатие на кнопку \"Администрирование\"")
     keyboard.press("TAB")
     keyboard.press("ENTER")
@@ -411,23 +414,23 @@ def account_test(identifier: Identifier, pc: TestingHardware, is_admin, keyboard
 @pytest.mark.dependency(depends=["chord_main_admin"])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
-def test_chord_user(identifier: Identifier, keyboard, pc, clear_db, log_test_borders):
-    account_test(identifier, pc, False, keyboard)
+def test_chord_user(identifier: Identifier, keyboard, display, pc, clear_db):
+    account_test(identifier, pc, False, keyboard, display)
 
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(depends=["chord_main_admin"])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
-def test_chord_admin(identifier: Identifier, keyboard, pc, clear_db, log_test_borders):
-    account_test(identifier, pc, True, keyboard)
+def test_chord_admin(identifier: Identifier, keyboard, display, pc, clear_db):
+    account_test(identifier, pc, True, keyboard, display)
 
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(depends=["chord_main_admin"])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
-def test_user_group(identifier: Identifier, keyboard, pc, clear_db, log_test_borders):
-    account_test(identifier, pc, True, keyboard)
+def test_user_group(identifier: Identifier, keyboard, pc, display, clear_db):
+    account_test(identifier, pc, True, keyboard, display)
 
 
