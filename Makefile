@@ -54,6 +54,3 @@ clean:
 
 run:
 	./run_tests.sh
-
-check_hardware:
-	# TODO: Make pytest hardware test run

@@ -11,6 +11,3 @@ xhost +
 
 echo Running tests
 sudo venv/bin/pytest --log-file="$test_report_dir/test.log" --html="$test_report_dir/test_report.html"
-
-#echo Closing test logs
-#kill "$logs_pid"

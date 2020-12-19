@@ -1,12 +1,12 @@
 import os
 import logging
 import json
+import decimal
 import requests
 import cv2 as cv
 from matplotlib import pyplot as plt
 from datetime import datetime
 from common_funcs import get_test_report_dir
-import glob
 import numpy as np
 import time
 
@@ -25,7 +25,9 @@ class Display:
             logging.error("Файла config.json не существует")
             assert False
         with open('config.json') as config_file:
-            self.__img_url = json.load(config_file)["display_snapshot_url"]
+            conf = json.load(config_file, parse_float=decimal.Decimal)
+            self.__img_url = conf["display_snapshot_url"]
+            self.__min_correlation = float(conf["min_correlation"])
 
         fig, ax = plt.subplots(figsize=(8, 9), dpi=125)
         plt.get_current_fig_manager().window.wm_geometry("+923+35")
@@ -58,7 +60,7 @@ class Display:
         logging.debug("min_val: " + str(min_val) + " max_val: " + str(max_val))
         logging.debug("")
         # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
-        if max_val > 0.7:
+        if max_val > self.__min_correlation:
             if method in [cv.TM_SQDIFF, cv.TM_SQDIFF_NORMED]:
                 top_left = min_loc
             else:
@@ -70,8 +72,7 @@ class Display:
         plt.draw()
         plt.pause(0.05)
 
-        # TODO: Взять цифру из конфигурационного файла
-        if max_val > 0.9:
+        if max_val > self.__min_correlation:
             return True
         return False
 

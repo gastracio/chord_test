@@ -1,6 +1,4 @@
 #!/bin/sh
-
-
 test_report_dir=$1
 
 echo Configuring lxterminal

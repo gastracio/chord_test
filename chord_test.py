@@ -189,7 +189,7 @@ def clear_db(keyboard, display):
 
 @pytest.mark.run(order=0)
 @pytest.mark.dependency(name="config", scope="session")
-def test_config(config, log_test_borders):
+def test_config(config):
     logging.info("Начало теста конфигурационного файла")
     # TODO: Добавить проверки на наличие всех необходимых полей в конфигурационном файле
     # TODO: Добавить проверку на наличие идентификатора, типа TM в конфигурационном файле
@@ -205,7 +205,7 @@ def test_config(config, log_test_borders):
 
 @pytest.mark.run(order=0)
 @pytest.mark.dependency(name="video_grabber", scope="session")
-def test_video_grabber(display, log_test_borders):
+def test_video_grabber(display):
     logging.info("Начало теста устройства захвата видео")
     logging.info("Попытка сделать скриншон экрана")
     try:
@@ -218,7 +218,7 @@ def test_video_grabber(display, log_test_borders):
 
 @pytest.mark.run(order=0)
 @pytest.mark.dependency(name="interrupter", scope="session")
-def test_interrupters(log_test_borders):
+def test_interrupters():
     logging.info("Начало теста прерывателей USB")
     readers_list = readers()
     if len(readers_list) < 2:
@@ -235,7 +235,7 @@ def test_interrupters(log_test_borders):
 
 @pytest.mark.run(order=0)
 @pytest.mark.dependency(name="bios_interrupt_catching", scope="session")
-def test_bios_interrupt_catching(pc, display, log_test_borders):
+def test_bios_interrupt_catching(pc, display):
     logging.info("Начало теста перехвата прерывания BIOS")
     res = check_correctness_of_interrupt_catching(display)
     if res is False:
@@ -245,7 +245,7 @@ def test_bios_interrupt_catching(pc, display, log_test_borders):
 
 @pytest.mark.run(order=0)
 @pytest.mark.dependency(name="bios_interrupt_catching", scope="session")
-def test_setup_in_first_boot(pc, display, log_test_borders):
+def test_setup_in_first_boot(pc, display):
     logging.info("Начало теста попадания в меню конфигурации при первой загрузке")
     res = display.waiting_first_setup()
     if res is False:
@@ -259,7 +259,7 @@ def test_setup_in_first_boot(pc, display, log_test_borders):
                         depends=[
                             "bios_interrupt_catching"
                         ])
-def test_keyboard_connecting(pc, log_test_borders):
+def test_keyboard_connecting(pc):
     logging.info("Начало теста проверки соединения для эмуляции клавиатуры")
     error_fl = False
     try:
@@ -287,7 +287,7 @@ def test_keyboard_connecting(pc, log_test_borders):
                         ])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
-def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_db, log_test_borders):
+def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_db):
     logging.info("Начало теста главного администратора Аккорда с идентификатором " + identifier.name)
 
     main_admin_password = generating_password()
@@ -330,7 +330,7 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_d
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(depends=["chord_main_admin"])
-def test_creating_user_with_main_admin_id(keyboard, pc, display, clear_db, log_test_borders):
+def test_creating_user_with_main_admin_id(keyboard, pc, display, clear_db):
     logging.info("Начало теста создания пользователя с идентификатором главного администратора")
 
     main_admin_id = random.choice([identifier for identifier in identifiers_list])
@@ -356,7 +356,7 @@ def test_creating_user_with_main_admin_id(keyboard, pc, display, clear_db, log_t
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(depends=["chord_main_admin"])
-def test_creating_admin_with_main_admin_id(keyboard, pc, clear_db, log_test_borders):
+def test_creating_admin_with_main_admin_id(keyboard, pc, clear_db):
     # TODO: Написать тест
     pass
 
