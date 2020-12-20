@@ -332,7 +332,7 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_d
 
 
 @pytest.mark.run(order=2)
-@pytest.mark.dependency(depends=["chord_main_admin"])
+@pytest.mark.dependency(name="creating_user_with_main_admin_id", depends=["chord_main_admin"])
 def test_creating_user_with_main_admin_id(keyboard, pc, display, clear_db):
     logging.info("Начало теста создания пользователя с идентификатором главного администратора")
 
@@ -348,7 +348,6 @@ def test_creating_user_with_main_admin_id(keyboard, pc, display, clear_db):
     user_password = generating_password()
     logging.info("Попытка создать пользователя с идентификатором главного администратора")
     assert not creating_user(main_admin_id, username, user_password, keyboard, display)
-    # TODO Сделать проверку ошибки присваивания неправильного идентификатора
     assert system_reboot(pc, display)
 
     assert authentication(main_admin_id, main_admin_password, keyboard, display)
@@ -358,7 +357,7 @@ def test_creating_user_with_main_admin_id(keyboard, pc, display, clear_db):
 
 
 @pytest.mark.run(order=2)
-@pytest.mark.dependency(depends=["chord_main_admin"])
+@pytest.mark.dependency(name="creating_admin_with_main_admin_id", depends=["creating_user_with_main_admin_id"])
 def test_creating_admin_with_main_admin_id(keyboard, pc, clear_db):
     # TODO: Написать тест
     pass
@@ -411,7 +410,7 @@ def account_test(identifier: Identifier, pc: TestingHardware, is_admin, keyboard
 
 
 @pytest.mark.run(order=2)
-@pytest.mark.dependency(depends=["chord_main_admin"])
+@pytest.mark.dependency(name="chord_user", depends=["creating_admin_with_main_admin_id"])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
 def test_chord_user(identifier: Identifier, keyboard, display, pc, clear_db):
@@ -419,7 +418,7 @@ def test_chord_user(identifier: Identifier, keyboard, display, pc, clear_db):
 
 
 @pytest.mark.run(order=2)
-@pytest.mark.dependency(depends=["chord_main_admin"])
+@pytest.mark.dependency(name="chord_admin", depends=["chord_user"])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
 def test_chord_admin(identifier: Identifier, keyboard, display, pc, clear_db):
@@ -427,7 +426,7 @@ def test_chord_admin(identifier: Identifier, keyboard, display, pc, clear_db):
 
 
 @pytest.mark.run(order=2)
-@pytest.mark.dependency(depends=["chord_main_admin"])
+@pytest.mark.dependency(name="user_group", dpends=["chord_admin"])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
 def test_user_group(identifier: Identifier, keyboard, pc, display, clear_db):
