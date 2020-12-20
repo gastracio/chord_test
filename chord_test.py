@@ -252,7 +252,7 @@ def test_setup_in_first_boot(pc, display):
     logging.info("Начало теста попадания в меню конфигурации при первой загрузке")
     res = display.waiting_first_setup()
     if res is False:
-        logging.error("Ошибка перехвата прерывания BIOS")
+        logging.error("Ошибка, не появился экран первичной настройки")
         assert False
 
 
@@ -333,12 +333,14 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_d
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(name="creating_user_with_main_admin_id", depends=["chord_main_admin"])
-def test_creating_user_with_main_admin_id(keyboard, pc, display, clear_db):
-    logging.info("Начало теста создания пользователя с идентификатором главного администратора")
+@pytest.mark.parametrize("identifier",
+                         [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
+def test_creating_user_with_main_admin_id(identifier: Identifier, keyboard, pc, display, clear_db):
+    logging.info("Начало теста создания пользователя с идентификатором главного администратора для " + identifier.name)
 
-    main_admin_id = random.choice([identifier for identifier in identifiers_list])
+    # main_admin_id = random.choice([identifier for identifier in identifiers_list])
     main_admin_password = generating_password()
-    assert creating_main_admin(main_admin_id, main_admin_password, keyboard, display)
+    assert creating_main_admin(identifier, main_admin_password, keyboard, display)
     apply_settings(keyboard)
 
     logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
@@ -347,10 +349,10 @@ def test_creating_user_with_main_admin_id(keyboard, pc, display, clear_db):
     username = "User"
     user_password = generating_password()
     logging.info("Попытка создать пользователя с идентификатором главного администратора")
-    assert not creating_user(main_admin_id, username, user_password, keyboard, display)
+    assert not creating_user(identifier, username, user_password, keyboard, display)
     assert system_reboot(pc, display)
 
-    assert authentication(main_admin_id, main_admin_password, keyboard, display)
+    assert authentication(identifier, main_admin_password, keyboard, display)
     logging.info("Нажатие на кнопку \"Администрирование\"")
     keyboard.press("TAB")
     keyboard.press("ENTER")
