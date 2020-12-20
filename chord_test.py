@@ -339,38 +339,62 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_d
         assert False
 
 
+def use_main_admin_id_in_other_users(identifier: Identifier, is_admin, keyboard, pc, display: Display):
+    if is_admin:
+        logging.info("Начало теста создания администратора с идентификатором главного администратора " +
+                     identifier.name)
+    else:
+        logging.info("Начало теста создания пользователя с идентификатором главного администратора " +
+                     identifier.name)
+
+    main_admin_password = generating_password()
+    res = creating_main_admin(identifier, main_admin_password, keyboard, display)
+    if res is False:
+        return False
+    apply_settings(keyboard)
+
+    user_password = generating_password()
+    if is_admin:
+        logging.info("Выбор группы \"Администраторы\" в дереве учетных записей")
+        username = "Admin"
+        logging.info("Попытка создать администратора с идентификатором главного администратора")
+    else:
+        logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
+        keyboard.press("DOWN_ARROW")
+        keyboard.press("DOWN_ARROW")
+        username = "User"
+        logging.info("Попытка создать пользователя с идентификатором главного администратора")
+    res = creating_user(identifier, username, user_password, keyboard, display)
+    if res is not False:
+        return False
+
+    res = system_reboot(pc, display)
+    if res is False:
+        return False
+
+    res = authentication(identifier, main_admin_password, keyboard, display)
+    if res is False:
+        return False
+    logging.info("Нажатие на кнопку \"Администрирование\"")
+    keyboard.press("TAB")
+    keyboard.press("ENTER")
+    return True
+
+
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(name="creating_user_with_main_admin_id", depends=["chord_main_admin"])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
 def test_creating_user_with_main_admin_id(identifier: Identifier, keyboard, pc, display, clear_db):
-    logging.info("Начало теста создания пользователя с идентификатором главного администратора для " + identifier.name)
-
-    # main_admin_id = random.choice([identifier for identifier in identifiers_list])
-    main_admin_password = generating_password()
-    assert creating_main_admin(identifier, main_admin_password, keyboard, display)
-    apply_settings(keyboard)
-
-    logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
-    keyboard.press("DOWN_ARROW")
-    keyboard.press("DOWN_ARROW")
-    username = "User"
-    user_password = generating_password()
-    logging.info("Попытка создать пользователя с идентификатором главного администратора")
-    assert not creating_user(identifier, username, user_password, keyboard, display)
-    assert system_reboot(pc, display)
-
-    assert authentication(identifier, main_admin_password, keyboard, display)
-    logging.info("Нажатие на кнопку \"Администрирование\"")
-    keyboard.press("TAB")
-    keyboard.press("ENTER")
+    assert use_main_admin_id_in_other_users(identifier, False, keyboard, pc, display)
 
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(name="creating_admin_with_main_admin_id", depends=["creating_user_with_main_admin_id"])
-def test_creating_admin_with_main_admin_id(keyboard, pc, clear_db):
-    # TODO: Написать тест
-    pass
+@pytest.mark.parametrize("identifier",
+                         [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
+def test_creating_admin_with_main_admin_id(identifier: Identifier, keyboard, pc, display, clear_db):
+    assert use_main_admin_id_in_other_users(identifier, True, keyboard, pc, display)
 
 
 def account_test(identifier: Identifier, pc: TestingHardware, is_admin, keyboard, display: Display):

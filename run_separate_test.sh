@@ -13,5 +13,5 @@ sudo venv/bin/pytest --log-file="$test_report_dir/test.log" --html="$test_report
 -p no:dependency \
 chord_test.py::test_bios_interrupt_catching \
 chord_test.py::test_setup_in_first_boot \
-"$1"
+"$@"
 
