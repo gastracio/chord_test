@@ -139,3 +139,11 @@ class Display:
                 return True
             time.sleep(2)
         return False
+
+    def waiting_for_message(self):
+        logging.info("Ожидание появления сообщения")
+        for i in range(2):
+            if self.message() is True:
+                return True
+            time.sleep(2)
+        return False

@@ -173,10 +173,18 @@ def clear_db(keyboard, display):
     yield
     logging.info("Очитска базы данных")
     keyboard.press("F6")
-    time.sleep(1)
+
+    res = display.waiting_for_message()
+    if res is False:
+        assert False
+
     logging.info("Нажатие кнопки ОК")
     keyboard.press("ENTER")
-    time.sleep(1)
+
+    res = display.waiting_for_message()
+    if res is False:
+        assert False
+
     logging.info("Нажатие кнопки ОК")
     keyboard.press("ENTER")
 
