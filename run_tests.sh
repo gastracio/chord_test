@@ -1,7 +1,7 @@
 #!/bin/sh
-
-
 test_report_dir=test_report_$(date +%s)
+
+
 echo "Creating dir $test_report_dir"
 mkdir "$test_report_dir"
 touch "$test_report_dir/test.log"

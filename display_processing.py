@@ -16,6 +16,8 @@ class Display:
     __info_message_template = cv.imread('templates/info_message_template.jpg', 0)
     __authentication_template = cv.imread('templates/authentication_template.jpg', 0)
     __passed_authentication_template = cv.imread('templates/passed_authentication_template.jpg', 0)
+    # TODO: Костыль
+    __user_passed_authentication_template = cv.imread('templates/user_passed_authentication_template.jpg', 0)
     __interrupt_catching_template = cv.imread('templates/interrupt_catching_template.jpg', 0)
     __message_template = cv.imread('templates/message_template.jpg', 0)
     __admin_interface_template = cv.imread('templates/admin_interface_template.jpg', 0)
@@ -92,6 +94,11 @@ class Display:
         snapshot_name = self.snapshot()
         return self.match_template(self.report_dir + "/" + snapshot_name, self.__passed_authentication_template)
 
+    # TODO: Костыль
+    def user_passed_authentication(self):
+        snapshot_name = self.snapshot()
+        return self.match_template(self.report_dir + "/" + snapshot_name, self.__user_passed_authentication_template)
+
     def message(self):
         snapshot_name = self.snapshot()
         return self.match_template(self.report_dir + "/" + snapshot_name, self.__message_template)
@@ -126,10 +133,17 @@ class Display:
 
     def waiting_for_passed_authentication(self):
         logging.info("Ожидание окна контроля целостности")
-        for i in range(2):
+        for i in range(4):
             if self.passed_authentication() is True:
                 return True
-            time.sleep(1)
+        return False
+
+    # TODO: Костыль
+    def waiting_for_user_passed_authentication(self):
+        logging.info("Ожидание окна контроля целостности")
+        for i in range(4):
+            if self.user_passed_authentication() is True:
+                return True
         return False
 
     def waiting_for_admin_interface(self):

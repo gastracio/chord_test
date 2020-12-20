@@ -51,20 +51,15 @@ def apply_settings(keyboard):
     time.sleep(1.5)
 
 
-def check_correctness_of_authentication(display: Display):
+def check_correctness_of_authentication(display: Display, is_admin=True):
     # TODO: Сделать корректную обработку ошибки
-    return display.waiting_for_passed_authentication()
+    if is_admin:
+        return display.waiting_for_passed_authentication()
+    else:
+        return display.waiting_for_user_passed_authentication()
 
 
-def authentication(identifier: Identifier, password, keyboard, display: Display):
-    """
-
-    :param display:
-    :param identifier:
-    :param password:
-    :param keyboard:
-    :return: authentication result
-    """
+def authentication(identifier: Identifier, password, keyboard, display: Display, is_admin=True):
     logging.info("Считывание идентификатора")
     identifier.attach_identifier()
     logging.info("Ввод пароля")
@@ -73,7 +68,7 @@ def authentication(identifier: Identifier, password, keyboard, display: Display)
     keyboard.press("ENTER")
 
     logging.info("Проверка результата аутентификации")
-    return check_correctness_of_authentication(display)
+    return check_correctness_of_authentication(display, is_admin)
 
 
 def create_account(identifier: Identifier, password, keyboard, display: Display):
@@ -299,6 +294,7 @@ def test_keyboard_connecting(pc):
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
 def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_db):
+    # TODO: Проверить на соответствие ПМИ
     logging.info("Начало теста главного администратора Аккорда с идентификатором " + identifier.name)
 
     main_admin_password = generating_password()
@@ -398,6 +394,7 @@ def test_creating_admin_with_main_admin_id(identifier: Identifier, keyboard, pc,
 
 
 def account_test(identifier: Identifier, pc: TestingHardware, is_admin, keyboard, display: Display):
+    # TODO: Проверить на соответствие ПМИ
     if is_admin:
         logging.info("Начало теста администратора Аккорда с идентификатором " + identifier.name)
     else:
@@ -405,7 +402,9 @@ def account_test(identifier: Identifier, pc: TestingHardware, is_admin, keyboard
 
     main_admin_id = random.choice([id1 for id1 in identifiers_list if id1 != identifier])
     main_admin_password = generating_password()
-    creating_main_admin(main_admin_id, main_admin_password, keyboard, display)
+    assert creating_main_admin(main_admin_id, main_admin_password, keyboard, display)
+    apply_settings(keyboard)
+
     if is_admin:
         logging.info("Выбор группы \"Администраторы\" в дереве учетных записей")
         account_name = "Admin"
@@ -415,29 +414,32 @@ def account_test(identifier: Identifier, pc: TestingHardware, is_admin, keyboard
         keyboard.press("DOWN_ARROW")
         account_name = "User"
     account_password = generating_password()
-    creating_user(identifier, account_name, account_password, keyboard, display)
+    assert creating_user(identifier, account_name, account_password, keyboard, display)
     apply_settings(keyboard)
-    system_reboot(pc, display)
+    assert system_reboot(pc, display)
 
-    logging.info("Аутентификация с неправильным паролем")
-    # TODO Делать аутентификацию до тех пор, пока не закроется доступ до администрирования (для кейса с неправильным
-    #  паролем)
-    authentication(identifier, account_password + "F", keyboard, display)
-    system_reboot(pc, display)
+    # logging.info("Аутентификация с неправильным паролем")
+    # # TODO Делать аутентификацию до тех пор, пока не закроется доступ до администрирования (для кейса с неправильным
+    # #  паролем)
+    # authentication(identifier, account_password + "F", keyboard, display)
+    # system_reboot(pc, display)
 
     if is_admin:
         logging.info("Аутентификация администратора")
+        assert authentication(identifier, account_password, keyboard, display)
     else:
         logging.info("Аутентификация пользователя")
-    authentication(identifier, account_password, keyboard, display)
-    logging.info("Нажатие на кнопку \"Продолжить загрузку\"")
-    keyboard.press("TAB")
-    keyboard.press("TAB")
-    keyboard.press("ENTER")
-    logging.info("Проверка корректности загрузки ОС")
-    system_reboot(pc, display)
+        assert authentication(identifier, account_password, keyboard, display, False)
+    # TODO: Проверка корректности загрузки ОС
+    # logging.info("Нажатие на кнопку \"Продолжить загрузку\"")
+    # keyboard.press("TAB")
+    # keyboard.press("TAB")
+    # keyboard.press("ENTER")
+    # logging.info("Проверка корректности загрузки ОС")
+    assert system_reboot(pc, display)
 
-    authentication(main_admin_id, main_admin_password, keyboard, display)
+    logging.info("Аутентификация главным администратором")
+    assert authentication(main_admin_id, main_admin_password, keyboard, display)
     logging.info("Нажатие на кнопку \"Администрирование\"")
     keyboard.press("TAB")
     keyboard.press("ENTER")
@@ -448,7 +450,13 @@ def account_test(identifier: Identifier, pc: TestingHardware, is_admin, keyboard
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
 def test_chord_user(identifier: Identifier, keyboard, display, pc, clear_db):
-    account_test(identifier, pc, False, keyboard, display)
+    try:
+        account_test(identifier, pc, False, keyboard, display)
+    except AssertionError:
+        assert False
+    except Exception as e:
+        logging.error(e)
+        assert False
 
 
 @pytest.mark.run(order=2)
@@ -456,14 +464,20 @@ def test_chord_user(identifier: Identifier, keyboard, display, pc, clear_db):
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
 def test_chord_admin(identifier: Identifier, keyboard, display, pc, clear_db):
-    account_test(identifier, pc, True, keyboard, display)
+    try:
+        account_test(identifier, pc, True, keyboard, display)
+    except AssertionError:
+        assert False
+    except Exception as e:
+        logging.error(e)
+        assert False
 
 
-@pytest.mark.run(order=2)
-@pytest.mark.dependency(name="user_group", dpends=["chord_admin"])
-@pytest.mark.parametrize("identifier",
-                         [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
-def test_user_group(identifier: Identifier, keyboard, pc, display, clear_db):
-    account_test(identifier, pc, True, keyboard, display)
+# @pytest.mark.run(order=2)
+# @pytest.mark.dependency(name="user_group", dpends=["chord_admin"])
+# @pytest.mark.parametrize("identifier",
+#                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
+# def test_user_group(identifier: Identifier, keyboard, pc, display, clear_db):
+#     assert account_test(identifier, pc, True, keyboard, display)
 
 

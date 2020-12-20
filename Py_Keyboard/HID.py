@@ -518,6 +518,7 @@ class Keyboard:
 
     def press(self, keycodes):
         logging.debug("Нажатие клавиши " + keycodes)
+        time.sleep(0.2)
         xys = {}
         for string in keycodes.split():
             xys[string] = string
@@ -527,7 +528,7 @@ class Keyboard:
         self.send_report(self.report)
         Keyboard.release_all(self)
         # TODO: Поэкспериментировать с задержкой клавиатуры
-        time.sleep(0.5)
+        time.sleep(0.3)
         return self.report
 
     def writer(self, *keycodes):

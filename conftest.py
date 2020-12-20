@@ -16,14 +16,12 @@ def test_log():
     test_report_dir = get_test_report_dir()
     command = [
         './tail_logs.sh',
-        test_report_dir
+        str(test_report_dir)
     ]
 
-    pro = subprocess.Popen(command, stdout=subprocess.PIPE,
-                           shell=True, preexec_fn=os.setsid)
+    pro = subprocess.Popen(command, stdout=subprocess.PIPE, preexec_fn=os.setsid)
     yield
     os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
-
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -80,6 +78,6 @@ def config():
 @pytest.fixture(autouse=True)
 def log_test_borders():
     # TODO: Удалить все вызовы фикстуры в тестах
-    logging.info("################################## НАЧАЛО ТЕСТА ##################################")
+    logging.info("################################ НАЧАЛО ТЕСТА ################################")
     yield
-    logging.info("################################## КОНЕЦ ТЕСТА ###################################")
+    logging.info("################################ КОНЕЦ ТЕСТА #################################")
