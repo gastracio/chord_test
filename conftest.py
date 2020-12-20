@@ -8,6 +8,7 @@ from Py_Keyboard.HID import Keyboard
 from display_processing import Display
 from common_funcs import get_test_report_dir
 import subprocess
+import signal
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -17,9 +18,12 @@ def test_log():
         './tail_logs.sh',
         test_report_dir
     ]
-    p = subprocess.Popen(command)
+
+    pro = subprocess.Popen(command, stdout=subprocess.PIPE,
+                           shell=True, preexec_fn=os.setsid)
     yield
-    subprocess.Popen.terminate(p)
+    os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
+
 
 
 @pytest.fixture(scope="function", autouse=True)
