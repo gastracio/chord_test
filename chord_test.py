@@ -6,7 +6,7 @@ import json
 import time
 from id_class import Identifier
 from display_processing import Display
-from testing_hardware import TestingHardware
+from testing_hardware import ChordTestHardware
 from smartcard.System import readers
 from Py_Keyboard.HID import Keyboard
 import common_funcs
@@ -28,7 +28,7 @@ def check_correctness_of_interrupt_catching(display: Display):
     return display.waiting_interrupt_catching()
 
 
-def system_reboot(pc: TestingHardware, display: Display):
+def system_reboot(pc: ChordTestHardware, display: Display):
     logging.info("Перезагрузка ПК")
     pc.reboot()
 
@@ -393,7 +393,7 @@ def test_creating_admin_with_main_admin_id(identifier: Identifier, keyboard, pc,
     assert use_main_admin_id_in_other_users(identifier, True, keyboard, pc, display)
 
 
-def account_test(identifier: Identifier, pc: TestingHardware, is_admin, keyboard, display: Display):
+def account_test(identifier: Identifier, pc: ChordTestHardware, is_admin, keyboard, display: Display):
     # TODO: Проверить на соответствие ПМИ
     if is_admin:
         logging.info("Начало теста администратора Аккорда с идентификатором " + identifier.name)
@@ -443,7 +443,7 @@ def account_test(identifier: Identifier, pc: TestingHardware, is_admin, keyboard
     logging.info("Нажатие на кнопку \"Администрирование\"")
     keyboard.press("TAB")
     keyboard.press("ENTER")
-
+    # TODO: Сделать обратную связь из GUI
 
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(name="chord_user", depends=["creating_admin_with_main_admin_id"])

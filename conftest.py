@@ -44,7 +44,7 @@ def display():
 
 @pytest.fixture(scope="session")
 def pc(display):
-    hardware = testing_hardware.TestingHardware()
+    hardware = testing_hardware.ChordTestHardware()
     logging.info("Включение питания ПК")
     hardware.power_switch()
 

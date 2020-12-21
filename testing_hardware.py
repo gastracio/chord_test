@@ -3,7 +3,7 @@ import time
 import logging
 
 
-class TestingHardware:
+class ChordTestHardware:
     def __init__(self):
         self.__reboot_pin = 37
         self.__power_pin = 38

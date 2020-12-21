@@ -7,15 +7,27 @@
   },
   "identifiers": [
     {
-      "name": "id_name_1",
+      "name": "Shipka-1",
       "interrupter": "USB Switcher (00000000) 00 00",
-      "rewritable_key": "False",
+      "rewritable_key": "True",
       "identifier_res_time_sec": 7
     },
     {
-      "name": "id_name_2",
+      "name": "Shipka-2",
       "interrupter": "USB Switcher (00000000) 01 00",
-      "rewritable_key": "False",
+      "rewritable_key": "True",
+      "identifier_res_time_sec": 7
+    },
+    {
+      "name": "TM-1",
+      "interrupter": "USB Switcher (00000000) 02 00",
+      "rewritable_key": "True",
+      "identifier_res_time_sec": 7
+    },
+    {
+      "name": "TM-2",
+      "interrupter": "USB Switcher (00000000) 03 00",
+      "rewritable_key": "True",
       "identifier_res_time_sec": 7
     }
   ]

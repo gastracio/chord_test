@@ -1,4 +1,4 @@
-from testing_hardware import TestingHardware
+from testing_hardware import ChordTestHardware
 from smartcard.System import readers
 import time
 import sys
@@ -182,7 +182,7 @@ if sys.argv[1] == "interrupters_list":
 
     exit(0)
 
-pc = TestingHardware()
+pc = ChordTestHardware()
 
 if sys.argv[1] == "reboot":
     print("Reboot")
