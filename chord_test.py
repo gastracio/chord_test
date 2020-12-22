@@ -250,7 +250,7 @@ def test_bios_interrupt_catching(pc, display):
 
 
 @pytest.mark.run(order=0)
-@pytest.mark.dependency(name="bios_interrupt_catching", scope="session")
+@pytest.mark.dependency(name="setup_in_first_boot", scope="session")
 def test_setup_in_first_boot(pc, display):
     logging.info("Начало теста попадания в меню конфигурации при первой загрузке")
     res = display.waiting_first_setup()
@@ -286,6 +286,7 @@ def test_keyboard_connecting(pc):
                         scope="session",
                         depends=[
                             "bios_interrupt_catching",
+                            "setup_in_first_boot",
                             "keyboard_connecting",
                             "video_grabber",
                             "interrupter",
