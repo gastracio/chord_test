@@ -17,18 +17,6 @@
       "interrupter": "USB Switcher (00000000) 01 00",
       "rewritable_key": "True",
       "identifier_res_time_sec": 7
-    },
-    {
-      "name": "TM-1",
-      "interrupter": "USB Switcher (00000000) 02 00",
-      "rewritable_key": "True",
-      "identifier_res_time_sec": 7
-    },
-    {
-      "name": "TM-2",
-      "interrupter": "USB Switcher (00000000) 03 00",
-      "rewritable_key": "True",
-      "identifier_res_time_sec": 7
     }
   ]
 }

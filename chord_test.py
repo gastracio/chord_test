@@ -43,10 +43,10 @@ def system_reboot(pc: ChordTestHardware, display: Display):
     return True
 
 
-def apply_settings(keyboard):
+def apply_settings(keyboard, display):
     logging.info("Применение настроек")
     keyboard.press("F5")
-    time.sleep(1.5)
+    display.waiting_for_message()
     keyboard.press("ENTER")
     time.sleep(1.5)
 
@@ -299,7 +299,7 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_d
 
     main_admin_password = generating_password()
     assert creating_main_admin(identifier, main_admin_password, keyboard, display)
-    apply_settings(keyboard)
+    apply_settings(keyboard, display)
     keyboard.press("ENTER")
     assert system_reboot(pc, display)
 
@@ -347,7 +347,7 @@ def use_main_admin_id_in_other_users(identifier: Identifier, is_admin, keyboard,
     res = creating_main_admin(identifier, main_admin_password, keyboard, display)
     if res is False:
         return False
-    apply_settings(keyboard)
+    apply_settings(keyboard, display)
 
     user_password = generating_password()
     if is_admin:
@@ -393,38 +393,50 @@ def test_creating_admin_with_main_admin_id(identifier: Identifier, keyboard, pc,
     assert use_main_admin_id_in_other_users(identifier, True, keyboard, pc, display)
 
 
-def account_test(identifier: Identifier, pc: ChordTestHardware, is_admin, keyboard, display: Display):
+def account_test(identifier: Identifier, pc: ChordTestHardware, config, keyboard, display: Display):
     # TODO: Проверить на соответствие ПМИ
-    if is_admin:
+    if config == "admin":
         logging.info("Начало теста администратора Аккорда с идентификатором " + identifier.name)
-    else:
+    elif config == "user":
         logging.info("Начало теста пользователя Аккорда с идентификатором " + identifier.name)
+    elif config == "group":
+        logging.info("Начало теста пользователя группы Аккорда с идентификатором " + identifier.name)
+    else:
+        assert False
 
     main_admin_id = random.choice([id1 for id1 in identifiers_list if id1 != identifier])
     main_admin_password = generating_password()
     assert creating_main_admin(main_admin_id, main_admin_password, keyboard, display)
-    apply_settings(keyboard)
+    apply_settings(keyboard, display)
 
-    if is_admin:
+    if config == "admin":
         logging.info("Выбор группы \"Администраторы\" в дереве учетных записей")
         account_name = "Admin"
-    else:
+    elif config == "user":
         logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
         keyboard.press("DOWN_ARROW")
         keyboard.press("DOWN_ARROW")
         account_name = "User"
+    else:
+        logging.info("Добавить группу USERS")
+        keyboard.press("F3")
+        keyboard.write("users")
+        keyboard.press("ENTER")
+        assert display.waiting_for_message()
+        keyboard.press("ENTER")
+
+        logging.info("Выбор группы \"USERS\" в дереве учетных записей")
+        keyboard.press("DOWN_ARROW")
+        keyboard.press("DOWN_ARROW")
+        keyboard.press("DOWN_ARROW")
+        account_name = "User"
+
     account_password = generating_password()
     assert creating_user(identifier, account_name, account_password, keyboard, display)
-    apply_settings(keyboard)
+    apply_settings(keyboard, display)
     assert system_reboot(pc, display)
 
-    # logging.info("Аутентификация с неправильным паролем")
-    # # TODO Делать аутентификацию до тех пор, пока не закроется доступ до администрирования (для кейса с неправильным
-    # #  паролем)
-    # authentication(identifier, account_password + "F", keyboard, display)
-    # system_reboot(pc, display)
-
-    if is_admin:
+    if config == "admin":
         logging.info("Аутентификация администратора")
         assert authentication(identifier, account_password, keyboard, display)
     else:
@@ -445,13 +457,14 @@ def account_test(identifier: Identifier, pc: ChordTestHardware, is_admin, keyboa
     keyboard.press("ENTER")
     # TODO: Сделать обратную связь из GUI
 
+
 @pytest.mark.run(order=2)
 @pytest.mark.dependency(name="chord_user", depends=["creating_admin_with_main_admin_id"])
 @pytest.mark.parametrize("identifier",
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
 def test_chord_user(identifier: Identifier, keyboard, display, pc, clear_db):
     try:
-        account_test(identifier, pc, False, keyboard, display)
+        account_test(identifier, pc, "admin", keyboard, display)
     except AssertionError:
         assert False
     except Exception as e:
@@ -465,7 +478,7 @@ def test_chord_user(identifier: Identifier, keyboard, display, pc, clear_db):
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
 def test_chord_admin(identifier: Identifier, keyboard, display, pc, clear_db):
     try:
-        account_test(identifier, pc, True, keyboard, display)
+        account_test(identifier, pc, "user", keyboard, display)
     except AssertionError:
         assert False
     except Exception as e:
@@ -473,11 +486,17 @@ def test_chord_admin(identifier: Identifier, keyboard, display, pc, clear_db):
         assert False
 
 
-# @pytest.mark.run(order=2)
-# @pytest.mark.dependency(name="user_group", dpends=["chord_admin"])
-# @pytest.mark.parametrize("identifier",
-#                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
-# def test_user_group(identifier: Identifier, keyboard, pc, display, clear_db):
-#     assert account_test(identifier, pc, True, keyboard, display)
+@pytest.mark.run(order=2)
+@pytest.mark.dependency(name="user_group", dpends=["chord_admin"])
+def test_user_group(keyboard, pc, display, clear_db):
+    identifier = random.choice([id1 for id1 in identifiers_list])
+    try:
+        account_test(identifier, pc, "group", keyboard, display)
+    except AssertionError:
+        assert False
+    except Exception as e:
+        logging.error(e)
+        assert False
 
 
+# TODO: Поменять входное состояние перед всеми тестами на выключенный ПК
