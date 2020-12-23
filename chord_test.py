@@ -46,6 +46,7 @@ def system_reboot(pc: ChordTestHardware, display: Display):
 def apply_settings(keyboard, display):
     logging.info("Применение настроек")
     keyboard.press("F5")
+    # TODO: Сделать корректную обработку ошибок
     display.waiting_for_message()
     keyboard.press("ENTER")
     time.sleep(1.5)
