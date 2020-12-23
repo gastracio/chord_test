@@ -15,7 +15,7 @@ class Display:
     report_dir = get_test_report_dir()
     __info_message_template = cv.imread('templates/info_message_template.jpg', 0)
     __authentication_template = cv.imread('templates/authentication_template.jpg', 0)
-    __passed_authentication_template = cv.imread('templates/passed_authentication_template.jpg', 0)
+    __passed_authentication_template = cv.imread('templates/passed_authentication_template_1.jpg', 0)
     # TODO: Костыль
     __user_passed_authentication_template = cv.imread('templates/user_passed_authentication_template.jpg', 0)
     __interrupt_catching_template = cv.imread('templates/interrupt_catching_template.jpg', 0)
@@ -136,6 +136,7 @@ class Display:
         for i in range(4):
             if self.passed_authentication() is True:
                 return True
+            time.sleep(3)
         return False
 
     # TODO: Костыль

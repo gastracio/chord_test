@@ -45,7 +45,7 @@ def system_reboot(pc: ChordTestHardware, display: Display):
 
 def apply_settings(keyboard, display):
     logging.info("Применение настроек")
-    keyboard.press("F5")
+    keyboard.press("F6")
     # TODO: Сделать корректную обработку ошибок
     display.waiting_for_message()
     keyboard.press("ENTER")
@@ -100,7 +100,6 @@ def create_account(identifier: Identifier, password, keyboard, display: Display)
 
     logging.info("Нажатие кнопки ОК")
     keyboard.press("ENTER")
-    keyboard.press("TAB")
 
     try:
         logging.info("Проверка на корректный выход в меню администрирования")
@@ -111,6 +110,7 @@ def create_account(identifier: Identifier, password, keyboard, display: Display)
         logging.error(e)
         return False
 
+    keyboard.press("TAB")
     logging.info("Нажатие кнопки \"Сменить...\" в поле \"Пароль\"")
     keyboard.press("SPACE")
     logging.info("Ввод пароля")
@@ -122,7 +122,6 @@ def create_account(identifier: Identifier, password, keyboard, display: Display)
     keyboard.write(password)
 
     logging.info("Нажатие кнопки ОК")
-    keyboard.press("TAB")
     keyboard.press("TAB")
     keyboard.press("ENTER")
 
@@ -167,8 +166,21 @@ def generating_password():
 def clear_db(keyboard, display):
     # TODO: Перенести эту фикстуру в conftes.py
     yield
+
+    logging.info("Переход в меню базы данных")
+    keyboard.press("SHIFT TAB")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("ENTER")
+
     logging.info("Очитска базы данных")
-    keyboard.press("F6")
+    keyboard.press("F4")
 
     res = display.waiting_for_message()
     if res is False:
@@ -323,6 +335,7 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_d
     keyboard.press("ENTER")
 
     logging.info("Проверка корректности загрузки ОС")
+    # TODO: Добавить проверку
     assert system_reboot(pc, display)
 
     assert authentication(identifier, main_admin_password, keyboard, display)
