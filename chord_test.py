@@ -501,4 +501,8 @@ def test_user_group(keyboard, pc, display, clear_db):
         assert False
 
 
+@pytest.mark.run(order=2)
+@pytest.mark.dependency(name="touch_memory", dpends=["user_group"])
+def test_touch_memory():
+    pytest.skip("Not implemented")
 # TODO: Поменять входное состояние перед всеми тестами на выключенный ПК
