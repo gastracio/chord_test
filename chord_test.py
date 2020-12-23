@@ -46,9 +46,12 @@ def system_reboot(pc: ChordTestHardware, display: Display):
 def apply_settings(keyboard, display):
     logging.info("Применение настроек")
     keyboard.press("F5")
-    display.waiting_for_message()
+    res = display.waiting_for_message()
+    if res is False:
+        return False
     keyboard.press("ENTER")
     time.sleep(1.5)
+    return True
 
 
 def check_correctness_of_authentication(display: Display, is_admin=True):
@@ -71,8 +74,7 @@ def authentication(identifier: Identifier, password, keyboard, display: Display,
     return check_correctness_of_authentication(display, is_admin)
 
 
-def create_account(identifier: Identifier, password, keyboard, display: Display):
-    keyboard.press("TAB")
+def changing_identifier(identifier, keyboard, display):
     logging.info("Нажатие кнопки \"Сменить...\" в поле \"Идентификатор\"")
     keyboard.press("SPACE")
     if identifier.rewritable_key:
@@ -87,7 +89,6 @@ def create_account(identifier: Identifier, password, keyboard, display: Display)
     keyboard.press("ENTER")
 
     logging.info("Считывание идентификатора")
-
     identifier.attach_identifier()
     try:
         logging.info("Проверка на наличие сообщений об ошибке")
@@ -99,6 +100,15 @@ def create_account(identifier: Identifier, password, keyboard, display: Display)
 
     logging.info("Нажатие кнопки ОК")
     keyboard.press("ENTER")
+
+
+def create_account(identifier: Identifier, password, keyboard, display: Display):
+    keyboard.press("TAB")
+
+    res = changing_identifier(identifier, keyboard, display)
+    if res is False:
+        return False
+
     keyboard.press("TAB")
 
     try:
@@ -138,7 +148,6 @@ def create_account(identifier: Identifier, password, keyboard, display: Display)
 
 def creating_main_admin(identifier, password, keyboard, display):
     logging.info("Переход в настройки гл. администратора")
-    keyboard.press("ENTER")
     keyboard.press("DOWN_ARROW")
     keyboard.press("TAB")
 
@@ -297,6 +306,7 @@ def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_d
     # TODO: Проверить на соответствие ПМИ
     logging.info("Начало теста главного администратора Аккорда с идентификатором " + identifier.name)
 
+    keyboard.press("ENTER")
     main_admin_password = generating_password()
     assert creating_main_admin(identifier, main_admin_password, keyboard, display)
     apply_settings(keyboard, display)
@@ -343,6 +353,7 @@ def use_main_admin_id_in_other_users(identifier: Identifier, is_admin, keyboard,
         logging.info("Начало теста создания пользователя с идентификатором главного администратора " +
                      identifier.name)
 
+    keyboard.press("ENTER")
     main_admin_password = generating_password()
     res = creating_main_admin(identifier, main_admin_password, keyboard, display)
     if res is False:
@@ -404,6 +415,7 @@ def account_test(identifier: Identifier, pc: ChordTestHardware, config, keyboard
     else:
         assert False
 
+    keyboard.press("ENTER")
     main_admin_id = random.choice([id1 for id1 in identifiers_list if id1 != identifier])
     main_admin_password = generating_password()
     assert creating_main_admin(main_admin_id, main_admin_password, keyboard, display)
@@ -498,5 +510,148 @@ def test_user_group(keyboard, pc, display, clear_db):
         logging.error(e)
         assert False
 
+
+def set_id_page(id_page: int, keyboard, display):
+    if id_page < 0 or id_page > 255:
+        return False
+
+    logging.info("Переход в настройки")
+    keyboard.press("SHIFT TAB")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("ENTER")
+
+    logging.info("Установка значения " + str(id_page) + " \"Станица идентификатора\"")
+    keyboard.press("TAB")
+    keyboard.write(str(id_page))
+
+    logging.info("Применение настроек")
+    keyboard.press("F2")
+    res = display.waiting_for_message()
+    if res is False:
+        return False
+
+    logging.info("Нажатие кнопки OK")
+    keyboard.press("ENTER")
+
+    logging.info("Переход обратно в настройки пользователей")
+    keyboard.press("SHIFT TAB")
+    keyboard.press("UP_ARROW")
+    keyboard.press("UP_ARROW")
+    keyboard.press("UP_ARROW")
+    keyboard.press("UP_ARROW")
+    keyboard.press("UP_ARROW")
+    keyboard.press("UP_ARROW")
+    keyboard.press("ENTER")
+    keyboard.press("TAB")
+
+    return True
+
+
+def touch_memory_sub_test(main_admin_id,
+                          main_admin_password,
+                          identifier,
+                          account_password,
+                          keyboard,
+                          pc,
+                          display):
+    logging.info("Проверка невозможности аутентификации пользователя")
+    assert not authentication(identifier, account_password, keyboard, display, False)
+    assert system_reboot(pc, display)
+
+    logging.info("Аутентификация главного администратора")
+    assert authentication(main_admin_id, main_admin_password, keyboard, display)
+
+    logging.info("Нажатие на кнопку \"Администрирование\"")
+    keyboard.press("TAB")
+    keyboard.press("ENTER")
+
+    logging.info("Переход в настройки пользователя")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("TAB")
+
+    logging.info("Смена идентификатора пользователя на тот же самый с генерацией")
+    keyboard.press("TAB")
+    assert changing_identifier(identifier, keyboard, display)
+    assert apply_settings(keyboard, display)
+    assert system_reboot(pc, display)
+
+    logging.info("Аутентификация пользователя")
+    assert authentication(identifier, account_password, keyboard, display, False)
+    assert system_reboot(pc, display)
+
+    logging.info("Аутентификация главного администратора")
+    assert authentication(main_admin_id, main_admin_password, keyboard, display)
+
+    logging.info("Нажатие на кнопку \"Администрирование\"")
+    keyboard.press("TAB")
+    keyboard.press("ENTER")
+
+
+@pytest.mark.run(order=2)
+@pytest.mark.dependency(name="touch_memory", dpends=["user_group"])
+def test_touch_memory(keyboard, pc, display):
+    identifier = random.choice([id1 for id1 in identifiers_list])
+    logging.info("Начало теста с идентификатором TM: " + identifier.name)
+
+    # TODO: Использовать идентификатор, типа ТМ
+    keyboard.press("ENTER")
+    main_admin_id = random.choice([id1 for id1 in identifiers_list if id1 != identifier])
+    main_admin_password = generating_password()
+    assert creating_main_admin(main_admin_id, main_admin_password, keyboard, display)
+    assert apply_settings(keyboard, display)
+
+    # TODO: Сделать проверку в config.json на наличие TM идентификаторов
+
+    logging.info("Выбор группы \"Обычные\" в дереве учетных записей")
+    keyboard.press("DOWN_ARROW")
+    keyboard.press("DOWN_ARROW")
+
+    account_name = "User"
+    account_password = generating_password()
+    assert creating_user(identifier, account_name, account_password, keyboard, display)
+    assert apply_settings(keyboard, display)
+
+    assert set_id_page(1, keyboard, display)
+
+    logging.info("Заново устанавливаем идентификатор и пароль для главного администратора")
+    keyboard.press("UP_ARROW")
+    keyboard.press("UP_ARROW")
+    assert creating_main_admin(main_admin_id, main_admin_password, keyboard, display)
+    assert apply_settings(keyboard, display)
+    assert system_reboot(pc, display)
+
+    try:
+        touch_memory_sub_test(main_admin_id, main_admin_password,
+                              identifier, account_password,
+                              keyboard, pc, display)
+    except AssertionError:
+        assert False
+    except Exception as e:
+        logging.error(e)
+        assert False
+
+    assert set_id_page(0, keyboard, display)
+
+    logging.info("Заново устанавливаем идентификатор и пароль для главного администратора")
+    assert creating_main_admin(main_admin_id, main_admin_password, keyboard, display)
+    assert apply_settings(keyboard, display)
+    assert system_reboot(pc, display)
+
+    try:
+        touch_memory_sub_test(main_admin_id, main_admin_password,
+                              identifier, account_password,
+                              keyboard, pc, display)
+    except AssertionError:
+        assert False
+    except Exception as e:
+        logging.error(e)
+        assert False
 
 # TODO: Поменять входное состояние перед всеми тестами на выключенный ПК
