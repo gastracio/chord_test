@@ -17,7 +17,7 @@ class Display:
     __authentication_template = cv.imread('templates/authentication_template.jpg', 0)
     __passed_authentication_template = cv.imread('templates/passed_authentication_template_1.jpg', 0)
     # TODO: Костыль
-    __user_passed_authentication_template = cv.imread('templates/user_passed_authentication_template.jpg', 0)
+    __user_passed_authentication_template = cv.imread('templates/user_passed_authentication_template_1.jpg', 0)
     __interrupt_catching_template = cv.imread('templates/interrupt_catching_template.jpg', 0)
     __message_template = cv.imread('templates/message_template.jpg', 0)
     __admin_interface_template = cv.imread('templates/admin_interface_template.jpg', 0)
@@ -145,6 +145,7 @@ class Display:
         for i in range(4):
             if self.user_passed_authentication() is True:
                 return True
+            time.sleep(3)
         return False
 
     def waiting_for_admin_interface(self):

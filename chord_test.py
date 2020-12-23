@@ -479,7 +479,7 @@ def account_test(identifier: Identifier, pc: ChordTestHardware, config, keyboard
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
 def test_chord_user(identifier: Identifier, keyboard, display, pc, clear_db):
     try:
-        account_test(identifier, pc, "admin", keyboard, display)
+        account_test(identifier, pc, "user", keyboard, display)
     except AssertionError:
         assert False
     except Exception as e:
@@ -493,7 +493,7 @@ def test_chord_user(identifier: Identifier, keyboard, display, pc, clear_db):
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
 def test_chord_admin(identifier: Identifier, keyboard, display, pc, clear_db):
     try:
-        account_test(identifier, pc, "user", keyboard, display)
+        account_test(identifier, pc, "admin", keyboard, display)
     except AssertionError:
         assert False
     except Exception as e:
