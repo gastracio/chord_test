@@ -133,7 +133,7 @@ class Display:
 
     def waiting_for_passed_authentication(self):
         logging.info("Ожидание окна контроля целостности")
-        for i in range(4):
+        for i in range(5):
             if self.passed_authentication() is True:
                 return True
             time.sleep(3)
@@ -142,7 +142,7 @@ class Display:
     # TODO: Костыль
     def waiting_for_user_passed_authentication(self):
         logging.info("Ожидание окна контроля целостности")
-        for i in range(4):
+        for i in range(5):
             if self.user_passed_authentication() is True:
                 return True
             time.sleep(3)

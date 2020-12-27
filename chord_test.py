@@ -47,6 +47,7 @@ def apply_settings(keyboard, display):
     logging.info("Применение настроек")
     keyboard.press("F6")
     # TODO: Сделать корректную обработку ошибок
+    # TODO: Сделать проверку на появление варнинга
     display.waiting_for_message()
     keyboard.press("ENTER")
     time.sleep(1.5)
@@ -309,6 +310,7 @@ def test_keyboard_connecting(pc):
                          [pytest.param(identifier, id=identifier.name) for identifier in identifiers_list])
 def test_chord_main_admin(identifier: Identifier, keyboard, pc, display, clear_db):
     # TODO: Проверить на соответствие ПМИ
+    # TODO: Добавить проверку на отстствие идентификатора в соответвие с ПМИ
     logging.info("Начало теста главного администратора Аккорда с идентификатором " + identifier.name)
 
     main_admin_password = generating_password()

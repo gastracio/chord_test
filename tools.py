@@ -2,6 +2,7 @@ from testing_hardware import ChordTestHardware
 from smartcard.System import readers
 import time
 import sys
+from Py_Keyboard.HID import Keyboard
 
 Cla_1 = [0x00]
 Ins_1 = [0x67]
@@ -203,5 +204,8 @@ if sys.argv[1] == "power_off":
     pc.power_switch(0)
     exit(0)
 
-
-
+if sys.argv[1] == "password":
+    keyboard = Keyboard("/dev/hidg0")
+    keyboard.write("12345678")
+    keyboard.press("ENTER")
+    exit(0)

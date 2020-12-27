@@ -37,6 +37,9 @@ power_off:
 reboot:
 	venv/bin/python tools.py reboot
 
+password:
+	sudo venv/bin/python tools.py password
+
 disable_interrupters:
 	venv/bin/python tools.py all_interrupters_disconnect
 
