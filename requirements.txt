@@ -9,6 +9,7 @@ kiwisolver==1.3.1
 matplotlib==3.3.3
 numpy==1.19.4
 opencv-python==4.4.0.46
+wheel
 packaging==20.4
 Pillow==8.0.1
 pkg-resources==0.0.0

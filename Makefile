@@ -13,11 +13,11 @@ get_logs:
 	$(pi_user)@$(pi_ip):~/chord_test/test_report_* .
 
 install:
-#	libs for OpenCV
+	./scripts/pcsc_lite_installer.sh
 	sudo apt-get update
-	sudo apt install python3-matplotlib
-	sudo apt-get install -y libatlas-base-dev libhdf5-dev libhdf5-serial-dev libjasper-dev
-	sudo apt-get install -y libqtgui4 libqt4-test
+	sudo apt-get install -y python3-matplotlib libatlas-base-dev libhdf5-dev \
+	libhdf5-serial-dev libjasper-dev libqtgui4 libqt4-test vim swig pcscd \
+	pcsc-tools libusb-dev libpcsclite-dev libccid
 #	matplotlib
 	#sudo apt-get install -y tcl-dev tk-dev python-tk python3-tk
 #TODO: Install matplotlib from rep: git clone https://github.com/matplotlib/matplotlib.git
