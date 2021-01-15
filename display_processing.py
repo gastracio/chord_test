@@ -11,6 +11,7 @@ import numpy as np
 import time
 
 
+# TODO: Вынести все magic numbers в config.json
 class Display:
     report_dir = get_test_report_dir()
     __info_message_template = cv.imread('templates/info_message_template.jpg', 0)
