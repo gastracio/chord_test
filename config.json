@@ -2,6 +2,7 @@
   "display_snapshot_url": "http://192.168.0.6:1881/image.jpg",
   "min_correlation": 0.9,
   "ssh": {
+    "IP": "",
     "user": "",
     "password": ""
   },
@@ -20,3 +21,4 @@
     }
   ]
 }
+
