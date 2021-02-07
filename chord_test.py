@@ -190,7 +190,7 @@ def clear_db(keyboard, display):
     logging.info("Нажатие кнопки ОК")
     keyboard.press("ENTER")
 
-    res = display.waiting_for_message()
+    res = display.waiting_for_message(6)
     if res is False:
         assert False
 
