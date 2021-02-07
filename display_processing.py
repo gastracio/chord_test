@@ -56,6 +56,7 @@ class Display:
         w, h = template.shape[::-1]
 
         img = img2.copy()
+        img2 = cv.imread(image_path, 1)
         method = eval('cv.TM_CCOEFF_NORMED')
         # Apply template Matching
         res = cv.matchTemplate(img, template, method)
@@ -69,9 +70,9 @@ class Display:
             else:
                 top_left = max_loc
             bottom_right = (top_left[0] + w, top_left[1] + h)
-            cv.rectangle(img, top_left, bottom_right, (255, 0, 0), 2)
+            cv.rectangle(img2, top_left, bottom_right, (255, 0, 0), 2)
 
-        self.image_plt.set_data(cv.cvtColor(img, cv.COLOR_BGR2RGB))
+        self.image_plt.set_data(cv.cvtColor(img2, cv.COLOR_BGR2RGB))
         plt.draw()
         plt.pause(0.05)
 
@@ -164,4 +165,3 @@ class Display:
                 return True
             time.sleep(2)
         return False
-
