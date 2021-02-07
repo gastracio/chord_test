@@ -504,7 +504,7 @@ def test_chord_admin(identifier: Identifier, keyboard, display, pc, clear_db):
 
 
 @pytest.mark.run(order=2)
-@pytest.mark.dependency(name="user_group", dpends=["chord_admin"])
+@pytest.mark.dependency(name="user_group", depends=["chord_admin"])
 def test_user_group(keyboard, pc, display, clear_db):
     identifier = random.choice([id1 for id1 in identifiers_list])
     try:
