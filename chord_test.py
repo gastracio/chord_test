@@ -4,6 +4,7 @@ import random
 import os
 import json
 import time
+import common_funcs
 from id_class import Identifier
 from display_processing import Display
 from testing_hardware import ChordTestHardware
@@ -31,6 +32,8 @@ def check_correctness_of_interrupt_catching(display: Display):
 def system_reboot(pc: ChordTestHardware, display: Display):
     logging.info("Перезагрузка ПК")
     pc.reboot()
+
+    common_funcs.display_ping()
 
     res = check_correctness_of_interrupt_catching(display)
     if res is False:

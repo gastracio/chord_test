@@ -6,14 +6,14 @@ import testing_hardware
 import time
 from Py_Keyboard.HID import Keyboard
 from display_processing import Display
-from common_funcs import get_test_report_dir
+import common_funcs
 import subprocess
 import signal
 
 
 @pytest.fixture(scope="session", autouse=True)
 def test_log():
-    test_report_dir = get_test_report_dir()
+    test_report_dir = common_funcs.get_test_report_dir()
     command = [
         './tail_logs.sh',
         str(test_report_dir)
@@ -26,14 +26,7 @@ def test_log():
 
 @pytest.fixture(scope="function", autouse=True)
 def display_ping():
-    test_report_dir = get_test_report_dir()
-    command = [
-        'xset',
-        'dpms',
-        'force',
-        'on'
-    ]
-    subprocess.run(command)
+    common_funcs.display_ping()
 
 
 @pytest.fixture(scope="session")
