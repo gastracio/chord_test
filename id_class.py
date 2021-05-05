@@ -163,3 +163,6 @@ class Identifier:
 
         self.__send_command(self.__disconnect_command_1)
         self.__send_command(self.__disconnect_command_2)
+
+
+
